@@ -14,6 +14,6 @@ class Model(object):
         """
         self.encoder = ConvEncoder()
         self.decoder = ConvDecoder()
-        self.prototype = 
+        self.prototype
 
     def forward(self, x):

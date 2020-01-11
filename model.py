@@ -22,6 +22,13 @@ class PrototypeModel(nn.Module):
     def forward(self, x):
         """
         Performs one forward pass of the full model
+        Args:
+            Input:
+                x: batch of data, appropriately sized for the specific encoder and decoder.
+            Output:
+                encoded : encoded batch of data of size (batch_size, latent_size)
+                decoded : decoded batch of data of appropriate input size
+                prototype : tuple of (distances, logits). See PrototypeClassifier
         """
         encoded   = self.encoder.forward(x)         # f(x)
         decoded   = self.decoder.forward(encoded)   # g(f(x))

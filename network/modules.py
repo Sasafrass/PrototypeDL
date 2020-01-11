@@ -12,16 +12,23 @@ class ConvEncoder(nn.Module):
         super().__init__()
 
         # Initialize the ConvNet
+        # Apparently padding=1 was necessary to get the same dimensions as listed in the paper.
+        # There should be a way to do this automatically, which is what tensorflow probably does 
+        # Although in the paper "zero padding" is used, which is kinda ambiguous in itself 
         self.convnet = nn.Sequential(
-            nn.Conv2d(1, 32,  kernel_size = 3, stride = 2),
+            nn.Conv2d(1, 32,  kernel_size = 3, stride = 2, padding=1),
+            nn.Sigmoid()
+            
+        )
+        self.mid = nn.Sequential(
+            nn.Conv2d(32, 32, kernel_size = 3, stride = 2, padding=1),
             nn.Sigmoid(),
-            nn.Conv2d(32, 32, kernel_size = 3, stride = 2),
-            nn.Sigmoid(),
-            nn.Conv2d(32, 32, kernel_size = 3, stride = 2),
-            nn.Sigmoid(),
-            nn.Conv2d(32, 10, kernel_size = 3, stride = 2),
+            nn.Conv2d(32, 32, kernel_size = 3, stride = 2, padding=1),
             nn.Sigmoid()
         )
+
+        self.final = nn.Sequential(nn.Conv2d(32, 10, kernel_size = 3, stride = 2, padding=1),
+            nn.Sigmoid())
 
     def forward(self, input):
         """
@@ -29,7 +36,11 @@ class ConvEncoder(nn.Module):
         """
         # Perform full pass through network
         out = self.convnet(input)
-
+        print("Shape after first layer\t", out.shape)
+        out = self.mid(out)
+        print("Shape after middle layers\t", out.shape)
+        out = self.final(out)
+        print("Final shape\t", out.shape)
         return out
 
 class ConvDecoder(nn.Module):
@@ -37,20 +48,25 @@ class ConvDecoder(nn.Module):
     def __init__(self):
         super().__init__()
 
-        # Initialize deconvnet decoder
-        self.deconvnet = nn.Sequential(
-            nn.ConvTranspose2d(10, 32, kernel_size = 3, stride = 1),
-            nn.ConvTranspose2d(32, 32, kernel_size = 3, stride = 1),
-            nn.ConvTranspose2d(32, 32, kernel_size = 3, stride = 1), 
-            nn.ConvTransPose2d(32, 1, kernel_size = 3, stride = 1)   
-        )
+        self.de1 = nn.ConvTranspose2d(10,32,kernel_size=3, stride=2,padding=1)
+        self.de2 = nn.ConvTranspose2d(32,32,kernel_size=3, stride=2,padding=1)
+        self.de3 = nn.ConvTranspose2d(32,32,kernel_size=3, stride=2,padding=1)
+        self.de4 = nn.ConvTranspose2d(32,1,kernel_size=3, stride=2,padding=1)
+        self.sigmoid = nn.Sigmoid()
+
 
     def forward(self, input):
         """
         Perform forward pass of decoder.
         """
-        
-        # Perform pass of decoder network
-        out = self.deconvnet(input)
-
+        # Output_size is necessary during convolution
+        b = len(input)
+        out = self.de1(input, output_size=(b,32,4,4))
+        out = self.sigmoid(out)
+        out = self.de2(out, output_size=(b,32,7,7))
+        out = self.sigmoid(out)
+        out = self.de3(out, output_size=(b,32,14,14))
+        out = self.sigmoid(out)
+        out = self.de4(out, output_size=(b,1,28,28))
+        out = self.sigmoid(out)
         return out

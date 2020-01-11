@@ -19,7 +19,7 @@ class ConvEncoder(nn.Module):
             nn.Sigmoid(),
             nn.Conv2d(32, 32, kernel_size = 3, stride = 2),
             nn.Sigmoid(),
-            nn.Conv2d(32, 10, kernel_size = 3, stride = 2)
+            nn.Conv2d(32, 10, kernel_size = 3, stride = 2),
             nn.Sigmoid()
         )
 

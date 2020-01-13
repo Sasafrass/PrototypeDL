@@ -1,6 +1,7 @@
 import numpy as np
 import torch
 import torch.nn as nn
+from helper import list_of_distances
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -47,9 +48,11 @@ class PrototypeClassifier(nn.Module):
         #    print(x)
 
         #x = torch.zeros((len(input), len(self.prototypes)))
-        for i, input_row in enumerate(input):
-            for j, prot_row in enumerate(self.prototypes):
-                x[i][j] = torch.sqrt(torch.sum((input_row - prot_row)**2))
+        #for i, input_row in enumerate(input):
+        #    for j, prot_row in enumerate(self.prototypes):
+        #        x[i][j] = torch.sqrt(torch.sum((input_row - prot_row)**2))
+
+        x = list_of_distances(input, self.prototypes)
         out = self.linear1(x)
         #print(x)
 

@@ -10,6 +10,9 @@ from preprocessing import batch_elastic_transform
 
 from model import PrototypeModel
 
+
+# Global parameters for device and reproducibility
+torch.manual_seed(42)
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 def train_MNIST(learning_rate=0.002, training_epochs=10, batch_size=250, sigma=4, alpha=20):

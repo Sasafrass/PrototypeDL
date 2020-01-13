@@ -2,6 +2,8 @@ import numpy as np
 import torch
 import torch.nn as nn
 
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
 class PrototypeClassifier(nn.Module):
 
     def __init__(self, n_prototypes, latent_size, output_size):
@@ -35,9 +37,9 @@ class PrototypeClassifier(nn.Module):
                       in the batch, shape (batch_size, output_size)
         """
         input = input.float()
-        # Latent space is 2x10x10 = 40
+        # Latent space is 10x2x2 = 40
         input = input.view(len(input), 40)
-        x = torch.zeros((len(input), len(self.prototypes)))
+        x = torch.zeros((len(input), len(self.prototypes))).to(device)
         for i, input_row in enumerate(input): # TODO: Remove loop
              x[i] = torch.sqrt(torch.sum((input_row - self.prototypes)**2))
         
@@ -45,3 +47,5 @@ class PrototypeClassifier(nn.Module):
 
         return x, out
 
+    def get_prototypes(self):
+        return self.prototypes

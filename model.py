@@ -32,6 +32,6 @@ class PrototypeModel(nn.Module):
         """
         encoded   = self.encoder.forward(x)         # f(x)
         decoded   = self.decoder.forward(encoded)   # g(f(x))
-        #prototype = self.prototype.forward(encoded) # h(f(x))
+        prototype = self.prototype.forward(encoded) # h(f(x))
 
-        return encoded, decoded#, prototype
+        return encoded, decoded, prototype

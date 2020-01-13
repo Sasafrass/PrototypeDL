@@ -2,10 +2,14 @@
 Code by Oscar Li
 github.com/OscarcarLi/PrototypeDL
 '''
-
+import torch
 import numpy as np
 from scipy.ndimage.interpolation import map_coordinates
 from scipy.ndimage.filters import gaussian_filter
+from torchvision.utils import save_image
+from torchvision.datasets import MNIST
+from torch.utils.data import DataLoader
+import torchvision.transforms as transforms
 
 def batch_elastic_transform(images, sigma, alpha, height, width, random_state=None):
     '''
@@ -18,7 +22,10 @@ def batch_elastic_transform(images, sigma, alpha, height, width, random_state=No
     
     returns: an elastically distorted image of the same shape
     '''
+    images = images.squeeze(1)
+    images = images.view(len(images), 28*28)
     assert len(images.shape) == 2
+
     # the two lines below ensure we do not alter the array images
     e_images = np.empty_like(images)
     e_images[:] = images
@@ -36,4 +43,5 @@ def batch_elastic_transform(images, sigma, alpha, height, width, random_state=No
         indices = x + dx, y + dy
         e_images[i] = map_coordinates(e_images[i], indices, order=1)
 
-    return e_images.reshape(-1, 784)
+    return torch.from_numpy(e_images.reshape(-1,1, 28,28))
+

@@ -1,4 +1,8 @@
 import torch
+"""
+Code by Oscar Li
+github.com/OscarcarLi/PrototypeDL
+"""
 
 def list_of_distances(X, Y):
     '''

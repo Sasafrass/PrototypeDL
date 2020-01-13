@@ -6,12 +6,13 @@ from torch.utils.data import DataLoader
 import torchvision.transforms as transforms
 from torch.nn.functional import one_hot
 from torchvision.utils import save_image
+from preprocessing import batch_elastic_transform
 
 from model import PrototypeModel
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-def train_MNIST(learning_rate=0.0001, training_epochs=1500, batch_size=250):
+def train_MNIST(learning_rate=0.002, training_epochs=10, batch_size=250, sigma=4, alpha=20):
     # Load data
     train_data = MNIST('./data', train=True, download=True, transform=transforms.Compose([
                                                 transforms.ToTensor(),
@@ -31,7 +32,9 @@ def train_MNIST(learning_rate=0.0001, training_epochs=1500, batch_size=250):
         epoch_acc = 0.0
         it = 0
         for i, (images, labels) in enumerate(dataloader):
+            images = batch_elastic_transform(images, sigma, alpha, 28, 28)
             images = images.to(device)
+            
             labels = labels.to(device)
             # TODO: Warp image data first.
             it += 1

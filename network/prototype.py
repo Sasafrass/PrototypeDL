@@ -44,8 +44,15 @@ class PrototypeClassifier(nn.Module):
              x[i] = torch.sqrt(torch.sum((input_row - self.prototypes)**2))
         
         out = self.linear1(x)
+        
+        # regularization r1: Be close to at least one training example 
+        # (get min distance to each datapoint=dimension 0)
+        min1 = torch.mean(torch.min(x, axis=0)[0])
+        # regularization r2: Be close to at least one prototype 
+        # (get min distance to each prototype=dimension 1)
+        min2 = torch.mean(torch.min(x, axis=1)[0])
 
-        return x, out
+        return min1, min2, out
 
     def get_prototypes(self):
         return self.prototypes

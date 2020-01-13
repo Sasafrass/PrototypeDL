@@ -35,22 +35,16 @@ def train_MNIST(learning_rate=0.002, training_epochs=10, batch_size=250):
             # TODO: Warp image data first.
             it += 1
             labels = one_hot(labels)
-            _, dec, (p, c) = proto.forward(images)
+            _, dec, (r1, r2, c) = proto.forward(images)
             # Calculate loss: Crossentropy + Reconstruction + R1 + R2 
             # Crossentropy h(f(x)) and y
             ce = nn.CrossEntropyLoss()
             # reconstruction error g(f(x)) and x
             re = torch.mean(torch.norm(dec - images) ** 2)
-            # regularization r1: Be close to at least one training example 
-            # (get min distance to each datapoint=dimension 0)
-            r1 = torch.mean(torch.min(p, axis=0)[0])
-            # regularization r2: Be close to at least one prototype 
-            # (get min distance to each prototype=dimension 1)
-            r2 = torch.mean(torch.min(p, axis=1)[0])
-
+            
             # Paper does 20 * ce and lambda_n = 1 for each regularization term
             loss = 20*ce(c, torch.argmax(labels, dim=1)) + re + r1 + r2
-            # print(loss)
+            #print( r1, r2)
             epoch_loss += loss.item()
             loss.backward()
             optim.step()

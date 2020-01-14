@@ -12,10 +12,11 @@ from model import PrototypeModel
 
 
 # Global parameters for device and reproducibility
-torch.manual_seed(42)
+torch.manual_seed(41)
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+print(device)
 
-def train_MNIST(learning_rate=0.002, training_epochs=10, batch_size=250, sigma=4, alpha=20):
+def train_MNIST(learning_rate=0.002, training_epochs=650, batch_size=250, sigma=4, alpha=20):
     # Load data
     train_data = MNIST('./data', train=True, download=True, transform=transforms.Compose([
                                                 transforms.ToTensor(),
@@ -57,7 +58,7 @@ def train_MNIST(learning_rate=0.002, training_epochs=10, batch_size=250, sigma=4
             
             # Paper does 20 * ce and lambda_n = 1 for each regularization term
             # Calculate loss and get accuracy etc.
-            loss = 20*ce(c, torch.argmax(oh_labels, dim=1)) + re + r1 + r2
+            loss = 20*ce(c, torch.argmax(oh_labels, dim=1)) + re + 10 * r1 + 10 * r2
             #print( r1, r2)
             epoch_loss += loss.item()
             preds = torch.argmax(c,dim=1)

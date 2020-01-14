@@ -54,16 +54,8 @@ def train_MNIST(learning_rate=0.02, training_epochs=650, batch_size=250, sigma=4
             # Crossentropy h(f(x)) and y
             ce = nn.CrossEntropyLoss()
             # reconstruction error g(f(x)) and x
-            #print("DEC - IMAGES: ", dec-images)
-            #print((dec-images).shape)
-            #print("NORM : ", torch.norm(dec-images))
-
-            #re = torch.mean(torch.norm(dec - images) ** 2)
-            re = torch.mean(torch.norm(dec - images))
-            #a = dec - images
-            #a.view(-1, 784)
-            #normie = torch.norm(dec - images, dim = 2)
-            #re = torch.mean(torch.norm(dec - images, dim = 2))
+            subtr = (dec - images).view(-1, 28*28)
+            re = torch.mean(torch.norm(subtr, dim=1))
             
             # Paper does 20 * ce and lambda_n = 1 for each regularization term
             # Calculate loss and get accuracy etc.

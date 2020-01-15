@@ -12,11 +12,10 @@ from model import PrototypeModel
 
 
 # Global parameters for device and reproducibility
-torch.manual_seed(41)
+torch.manual_seed(7)
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-print(device)
 
-def train_MNIST(learning_rate=0.02, training_epochs=650, batch_size=250, sigma=4, alpha=20):
+def train_MNIST(learning_rate=0.0001, training_epochs=1500, batch_size=250, sigma=4, alpha=20):
     # Load data
     train_data = MNIST('./data', train=True, download=True, transform=transforms.Compose([
                                                 transforms.ToTensor(),
@@ -46,7 +45,7 @@ def train_MNIST(learning_rate=0.02, training_epochs=650, batch_size=250, sigma=4
             images = images.to(device)
             labels = labels.to(device)
 
-            # TODO: Warp image data first.
+            # Warp image data first.
             oh_labels = one_hot(labels)
             _, dec, (r1, r2, c) = proto.forward(images)
 

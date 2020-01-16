@@ -15,8 +15,8 @@ class PrototypeModel(nn.Module):
         """
         super().__init__()
 
-        self.encoder = ConvEncoder()
-        self.decoder = ConvDecoder()
+        self.encoder = ConvEncoder(latent_size)
+        self.decoder = ConvDecoder(latent_size)
         self.prototype = PrototypeClassifier(n_prototypes, latent_size, n_classes)
 
     def forward(self, x):

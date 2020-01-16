@@ -8,7 +8,7 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 # Encoder class for convolutional neural network
 class ConvEncoder(nn.Module):
 
-    def __init__(self):
+    def __init__(self, latent_size):
         super().__init__()
 
         # Apparently padding=1 was necessary to get the same dimensions as listed in the paper.
@@ -21,7 +21,7 @@ class ConvEncoder(nn.Module):
             nn.Sigmoid(),
             nn.Conv2d(32, 32, kernel_size = 3, stride = 2, padding=1),
             nn.Sigmoid(),
-            nn.Conv2d(32, 10, kernel_size = 3, stride = 2, padding=1),
+            nn.Conv2d(32, int(latent_size/4), kernel_size = 3, stride = 2, padding=1),
             nn.Sigmoid())
 
     def forward(self, input):
@@ -40,10 +40,10 @@ class ConvEncoder(nn.Module):
 
 class ConvDecoder(nn.Module):
 
-    def __init__(self):
+    def __init__(self, latent_size):
         super().__init__()
 
-        self.de1 = nn.ConvTranspose2d(10,32,kernel_size=3, stride=2,padding=1)
+        self.de1 = nn.ConvTranspose2d(int(latent_size/4),32,kernel_size=3, stride=2,padding=1)
         self.de2 = nn.ConvTranspose2d(32,32,kernel_size=3, stride=2,padding=1)
         self.de3 = nn.ConvTranspose2d(32,32,kernel_size=3, stride=2,padding=1)
         self.de4 = nn.ConvTranspose2d(32,1, kernel_size=3, stride=2,padding=1)

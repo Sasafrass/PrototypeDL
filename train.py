@@ -121,4 +121,4 @@ def train_MNIST(learning_rate=0.0001, training_epochs=1500, batch_size=250, sigm
         # Print statement to check on progress
         print("Epoch: ", epoch, "Loss: ", epoch_loss / it, "Acc: ", epoch_acc/it)
 
-train_MNIST()
+#train_MNIST()

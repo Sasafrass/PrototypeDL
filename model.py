@@ -6,6 +6,7 @@ import numpy as np
 
 from network.modules import *
 from network.prototype import *
+from network.hierarchyPrototype import *
 
 class PrototypeModel(nn.Module):
     def __init__(self, n_prototypes, latent_size, n_classes):
@@ -17,7 +18,7 @@ class PrototypeModel(nn.Module):
 
         self.encoder = ConvEncoder()
         self.decoder = ConvDecoder()
-        self.prototype = PrototypeClassifier(n_prototypes, latent_size, n_classes)
+        self.prototype = HierarchyPrototypeClassifier(n_prototypes, latent_size, n_classes, 3)
 
     def forward(self, x):
         """

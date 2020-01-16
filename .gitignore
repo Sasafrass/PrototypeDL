@@ -141,7 +141,7 @@ dmypy.json
 *.code-workspace
 
 # no images
-./images/.
+./images/*
 
 # no models
-./models/.
+./models/*

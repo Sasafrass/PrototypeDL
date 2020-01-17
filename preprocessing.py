@@ -1,5 +1,5 @@
 '''
-Code by Oscar Li
+Code by Oscar Li with pytorch-compatible changes
 github.com/OscarcarLi/PrototypeDL
 '''
 import torch
@@ -27,7 +27,7 @@ def batch_elastic_transform(images, sigma, alpha, height, width, random_state=No
     assert len(images.shape) == 2
 
     # the two lines below ensure we do not alter the array images
-    e_images = np.empty_like(images)
+    e_images = torch.zeros(images.shape)
     e_images[:] = images
     
     e_images = e_images.reshape(-1, height, width)
@@ -41,7 +41,7 @@ def batch_elastic_transform(images, sigma, alpha, height, width, random_state=No
         dx = gaussian_filter((random_state.rand(height, width) * 2 - 1), sigma, mode='constant') * alpha
         dy = gaussian_filter((random_state.rand(height, width) * 2 - 1), sigma, mode='constant') * alpha
         indices = x + dx, y + dy
-        e_images[i] = map_coordinates(e_images[i], indices, order=1)
+        e_images[i] = torch.from_numpy(map_coordinates(e_images[i], indices, order=1))
 
-    return torch.from_numpy(e_images.reshape(-1,1, 28,28))
+    return e_images.reshape(-1,1, 28,28)
 

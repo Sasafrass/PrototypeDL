@@ -65,13 +65,8 @@ class HierarchyPrototypeClassifier(nn.Module):
         x = list_of_distances(input, self.prototypes)
         closest_index = torch.min(x, axis=1)
         
-
-        # regularization r1: Be close to at least one training example 
-        # (get min distance to each datapoint=dimension 0)
-
+        # Terms r1, r2
         min1 = torch.mean(closest_index.values)
-        # regularization r2: Be close to at least one prototype 
-        # (get min distance to each prototype=dimension 1)
         min2 = torch.mean(torch.min(x, axis=1).values)
 
         #compute the sub prototypes
@@ -88,11 +83,13 @@ class HierarchyPrototypeClassifier(nn.Module):
             output, idx_sub_min1, idx_sub_min2 = self._compute_linear(values, ix)
             sub_min1 += idx_sub_min1
             sub_min2 += idx_sub_min2
+            out[rearrange_index] = output
         
+        # terms r3, r4
         sub_min1 /= self.n_prototypes
         sub_min2 /= self.n_prototypes
 
-        return min1, min2, out
+        return min1, min2, sub_min1, sub_min2, out
 
     def get_prototypes(self):
         return self.prototypes

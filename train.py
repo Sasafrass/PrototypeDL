@@ -47,7 +47,8 @@ def train_MNIST(learning_rate=0.0001, training_epochs=1500, batch_size=250, sigm
 
             # Warp image data first.
             oh_labels = one_hot(labels)
-            _, dec, (r1, r2, c) = proto.forward(images)
+            _, dec, (r1, r2, r3, r4, c) = proto.forward(images)
+            #print(r1,r2,r3,r4)
 
             # Calculate loss: Crossentropy + Reconstruction + R1 + R2 
             # Crossentropy h(f(x)) and y
@@ -58,7 +59,7 @@ def train_MNIST(learning_rate=0.0001, training_epochs=1500, batch_size=250, sigm
             
             # Paper does 20 * ce and lambda_n = 1 for each regularization term
             # Calculate loss and get accuracy etc.
-            loss = 20*ce(c, torch.argmax(oh_labels, dim=1)) + r1 + r2 + re
+            loss = 20*ce(c, torch.argmax(oh_labels, dim=1)) + r1 + r2 + r3 + r4 + re
             #print( r1, r2)
             epoch_loss += loss.item()
             preds = torch.argmax(c,dim=1)
@@ -77,11 +78,11 @@ def train_MNIST(learning_rate=0.0001, training_epochs=1500, batch_size=250, sigm
         imgs = proto.decoder(prototypes)
 
         # Save images
-        save_image(imgs, 'images/prot{}.png'.format(epoch), nrow=5, normalize=True)
-        save_image(dec, 'images/dec{}.png'.format(epoch), nrow=5, normalize=True)
+        save_image(imgs, 'images/prot_hier{}.png'.format(epoch), nrow=5, normalize=True)
+        save_image(dec, 'images/dec_hier{}.png'.format(epoch), nrow=5, normalize=True)
 
         # Save model
-        torch.save(proto, "models/proto.pth")
+        torch.save(proto, "models/proto_hier.pth")
 
         # Print statement to check on progress
         print("Epoch: ", epoch, "Loss: ", epoch_loss / it, "Acc: ", epoch_acc/it)

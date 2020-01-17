@@ -31,7 +31,7 @@ class HierarchyPrototypeClassifier(nn.Module):
             return sub_prototypes, linear_layers
 
     def _compute_linear(self, input, index):
-        x = list_of_distances(input, self.sub_prototypes[index])
+        x = list_of_distances(input, self.sub_prototypes[index].to(device))
 
         out = self.linear_layers[index].forward(x)
 

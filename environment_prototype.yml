@@ -35,7 +35,6 @@ dependencies:
   - ipywidgets=7.5.1=py_0
   - jedi=0.15.2=py37_0
   - jinja2=2.10.3=py_0
-  - jpeg=9b=h470a237_3
   - jsonschema=3.2.0=py37_0
   - jupyter=1.0.0=py37_7
   - jupyter_client=5.3.4=py37_0

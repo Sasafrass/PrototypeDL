@@ -71,7 +71,7 @@ class HierarchyPrototypeClassifier(nn.Module):
 
         #compute the sub prototypes
         prototype_index = closest_index.indices
-        out = torch.zeros((len(input), self.output_size))
+        out = torch.zeros((len(input), self.output_size)).to(device)
 
         sub_min1 = 0
         sub_min2 = 0

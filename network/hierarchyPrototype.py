@@ -17,16 +17,16 @@ class HierarchyPrototypeClassifier(nn.Module):
         self.latent_size = latent_size
         self.output_size = output_size
         # initialize n_prototypes prototypes, they are of size latent_size
-        self.prototypes = nn.Parameter(torch.nn.init.uniform_(torch.zeros(n_prototypes, latent_size)))
-        self.sub_prototypes, self.linear_layers = self._createSubprototypes(output_size, n_prototypes, n_sub_prototypes, latent_size)
+        self.prototypes = nn.Parameter(torch.nn.init.uniform_(torch.zeros(n_prototypes, latent_size))).to(device)
+        self.sub_prototypes, self.linear_layers = self._createSubprototypes(output_size, n_prototypes, n_sub_prototypes, latent_size).to(device)
 
 
     def _createSubprototypes(self, output_size, n_prototypes, n_sub_prototypes, latent_size):
             sub_prototypes = np.empty(n_prototypes, dtype=object)
             linear_layers = np.empty(n_prototypes, dtype = object )
             for subset in range(n_prototypes):
-                sub_prototypes[subset] = nn.Parameter(torch.nn.init.uniform_(torch.zeros(n_sub_prototypes, latent_size)))
-                linear_layers[subset] = nn.Linear(n_sub_prototypes, output_size)
+                sub_prototypes[subset] = nn.Parameter(torch.nn.init.uniform_(torch.zeros(n_sub_prototypes, latent_size))).to(device)
+                linear_layers[subset] = nn.Linear(n_sub_prototypes, output_size).to(device)
 
             return sub_prototypes, linear_layers
 

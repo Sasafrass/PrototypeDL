@@ -25,12 +25,13 @@ class HierarchyPrototypeClassifier(nn.Module):
             sub_prototypes = np.empty(n_prototypes, dtype=object)
             linear_layers = np.empty(n_prototypes, dtype = object )
             for subset in range(n_prototypes):
-                sub_prototypes[subset] = nn.Parameter(torch.nn.init.uniform_(torch.zeros(n_sub_prototypes, latent_size)))
-                linear_layers[subset] = nn.Linear(n_sub_prototypes, output_size)
+                sub_prototypes[subset] = nn.Parameter(torch.nn.init.uniform_(torch.zeros(n_sub_prototypes, latent_size))).to(device)
+                linear_layers[subset] = nn.Linear(n_sub_prototypes, output_size).to(device)
 
             return sub_prototypes, linear_layers
 
     def _compute_linear(self, input, index):
+        input = input.to(device)
         x = list_of_distances(input, self.sub_prototypes[index])
 
         out = self.linear_layers[index].forward(x)
@@ -67,22 +68,23 @@ class HierarchyPrototypeClassifier(nn.Module):
         
         # Terms r1, r2
         min1 = torch.mean(closest_index.values)
-        min2 = torch.mean(torch.min(x, axis=1).values)
+        min2 = torch.mean(torch.min(x, axis=0).values)
 
         #compute the sub prototypes
         prototype_index = closest_index.indices
-        out = torch.zeros((len(input), self.output_size))
+        out = torch.zeros((len(input), self.output_size)).to(device)
 
         sub_min1 = 0
         sub_min2 = 0
 
         for ix in range(self.n_prototypes):
             rearrange_index = prototype_index == ix
+            test = rearrange_index.float().sum()
             values = input[rearrange_index]
             if len(values) == 0: continue
             output, idx_sub_min1, idx_sub_min2 = self._compute_linear(values, ix)
-            sub_min1 += idx_sub_min1
-            sub_min2 += idx_sub_min2
+            sub_min1 += idx_sub_min1 #/ test 
+            sub_min2 += idx_sub_min2 #/ test
             out[rearrange_index] = output
         
         # terms r3, r4
@@ -93,3 +95,6 @@ class HierarchyPrototypeClassifier(nn.Module):
 
     def get_prototypes(self):
         return self.prototypes
+
+    def get_sub_prototypes(self):
+        return self.sub_prototypes

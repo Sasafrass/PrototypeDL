@@ -31,7 +31,7 @@ class HierarchyPrototypeClassifier(nn.Module):
             return sub_prototypes, linear_layers
 
     def _compute_linear(self, input, index):
-        x = list_of_distances(input, self.sub_prototypes[index]).to(device)
+        x = list_of_distances(input, self.sub_prototypes[index])
 
         out = self.linear_layers[index].forward(x)
 
@@ -78,7 +78,7 @@ class HierarchyPrototypeClassifier(nn.Module):
 
         for ix in range(self.n_prototypes):
             rearrange_index = prototype_index == ix
-            values = input[rearrange_index]
+            values = input[rearrange_index].to(device)
             if len(values) == 0: continue
             output, idx_sub_min1, idx_sub_min2 = self._compute_linear(values, ix)
             sub_min1 += idx_sub_min1

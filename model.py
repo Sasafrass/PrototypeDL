@@ -45,8 +45,8 @@ class HierarchyModel(nn.Module):
         """
         super().__init__()
 
-        self.encoder = ConvEncoder()
-        self.decoder = ConvDecoder()
+        self.encoder = ConvEncoder(latent_size)
+        self.decoder = ConvDecoder(latent_size)
         self.prototype = HierarchyPrototypeClassifier(n_prototypes, latent_size, n_classes, n_sub_prototypes)
 
     def forward(self, x):

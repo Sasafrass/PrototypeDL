@@ -60,7 +60,7 @@ class HierarchyPrototypeClassifier(nn.Module):
         """
         input = input.float()
         # Latent space is 10x2x2 = 40
-        input = input.view(len(input), 40)
+        input = input.view(len(input), self.latent_size)
         x = torch.zeros((len(input), len(self.prototypes))).to(device)
 
         x = list_of_distances(input, self.prototypes)

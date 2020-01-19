@@ -56,7 +56,7 @@ def run_epoch(hierarchical, sigma, alpha,       # Model parameters
         images = images.to(device)
         labels = labels.to(device)
         oh_labels = one_hot(labels)
-        
+
         # Forward pass
         if hierarchical:
             _, decoding, (r1, r2, r3, r4, c) = model.forward(images)
@@ -167,4 +167,4 @@ def train_MNIST(hierarchical=False, n_prototypes=15, n_sub_prototypes =15,
 
     testdataloader = DataLoader(test_data, batch_size=batch_size)
 
-train_MNIST( hierarchical =True,batch_size=250)
+train_MNIST( hierarchical=False, batch_size=250)

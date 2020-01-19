@@ -170,7 +170,7 @@ def train_MNIST(hierarchical=False, n_prototypes=15, n_sub_prototypes =15,
             torch.save(proto, model_path+"proto.pth")
 
         # Print statement to check on progress
-        with open("results.txt", "a") as f:
+        with open("results_s" + str(args.seed ) + ".txt", "a") as f:
             text = "Epoch: " + str(epoch) + " loss: " + str(epoch_loss / it) + " acc: " + str(epoch_acc/it)
             print(text)
             f.write(text)
@@ -213,7 +213,7 @@ def train_MNIST(hierarchical=False, n_prototypes=15, n_sub_prototypes =15,
         corr = torch.sum(torch.eq(preds,labels))
         size = labels.shape[0]
         test_accuracy += corr.item()/size
-    with open("results.txt", "a") as f:
+    with open("results_s" + str(args.seed ) + ".txt", "a") as f:
         text = "Testdata loss: " +  str(test_loss/it) + " acc: " + str(test_accuracy/it)
         print(text)
         f.write(text)

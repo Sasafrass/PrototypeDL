@@ -113,7 +113,7 @@ def train_MNIST(hierarchical=False, n_prototypes=15, n_sub_prototypes =15,
                 learning_rate=0.0001, training_epochs=1500, 
                 batch_size=250, save_every=50, sigma=4, alpha=20):
     # Prepare file
-    f = open("results.txt", "w")
+    f = open("results_s" + str(args.seed ) + ".txt", "w")
     f.write(', '.join([str(x) for x in [hierarchical, n_prototypes, latent_size, learning_rate]]))
     f.write('\n')
     f.close()

@@ -103,8 +103,8 @@ def save_images(prototype_path, decoding_path, prototypes, subprototypes, decodi
     if not os.path.exists(decoding_path):
         os.makedirs(decoding_path)
    
-    save_image(prototypes, prototype_path+'prot{}.png'.format(epoch), nrow=5, normalize=True)
-    save_image(decoding, decoding_path+'dec{}.png'.format(epoch), nrow=5, normalize=True)
+    save_image(prototypes, prototype_path+'seed{}prot{}.png'.format(args.seed, epoch), nrow=5, normalize=True)
+    save_image(decoding, decoding_path+'seed{}dec{}.png'.format(args.seed, epoch), nrow=5, normalize=True)
     if subprototypes is not None: 
         save_image(subprototypes, prototype_path+'subprot{}.png'.format(epoch), nrow=3, normalize=True )
 
@@ -145,26 +145,27 @@ def train_MNIST(hierarchical=False, n_prototypes=15, n_sub_prototypes =15,
         it, epoch_loss, epoch_acc, dec = run_epoch(hierarchical, sigma, alpha, 
                         proto, dataloader, optim, it, epoch_loss, epoch_acc)
 
-        # Get prototypes and decode them to display
-        prototypes = proto.prototype.get_prototypes()
-        prototypes = prototypes.view(-1, 10, 2, 2)
-        imgs = proto.decoder(prototypes)
-
-        subprototypes = None
-        if hierarchical:
-            subprototypes = proto.prototype.get_sub_prototypes()
-            for i in range(len(subprototypes)):
-                if i == 0:
-                    subprotoset = subprototypes[i].view(-1,10,2,2)
-                else:
-                    subprotoset = torch.cat([subprotoset, subprototypes[i].view(-1,10,2,2)])
-            subprototypes = proto.decoder(subprotoset)
-
-        # Save images
-        save_images(prototype_path, decoding_path, imgs, subprototypes, dec, epoch)
-
-        # Save model
+        # To save time
         if epoch % save_every == 0:
+        # Get prototypes and decode them to display
+            prototypes = proto.prototype.get_prototypes()
+            prototypes = prototypes.view(-1, 10, 2, 2)
+            imgs = proto.decoder(prototypes)
+
+            subprototypes = None
+            if hierarchical:
+                subprototypes = proto.prototype.get_sub_prototypes()
+                for i in range(len(subprototypes)):
+                    if i == 0:
+                        subprotoset = subprototypes[i].view(-1,10,2,2)
+                    else:
+                        subprotoset = torch.cat([subprotoset, subprototypes[i].view(-1,10,2,2)])
+                subprototypes = proto.decoder(subprotoset)
+
+            # Save images
+            save_images(prototype_path, decoding_path, imgs, subprototypes, dec, epoch)
+
+            # Save model
             if not os.path.exists(model_path):
                 os.makedirs(model_path)
             torch.save(proto, model_path+"proto.pth")
@@ -175,7 +176,6 @@ def train_MNIST(hierarchical=False, n_prototypes=15, n_sub_prototypes =15,
             print(text)
             f.write(text)
             f.write('\n')
-        
 
     # Test data
     proto.eval()

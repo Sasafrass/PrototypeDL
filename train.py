@@ -15,22 +15,27 @@ from model import PrototypeModel, HierarchyModel
 torch.manual_seed(7)
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
+model_path = 'models/'
+prototype_path = 'images/prototypes/'
+decoding_path = 'images/decoding/'
+
+
 # Training details
-learning_rate = 0.0001
-training_epoch = 1500
-batch_size = 250
-save_every = 50
+#learning_rate = 0.0001
+#training_epoch = 1500
+#batch_size = 250
+#save_every = 50
 
 # Warping parameters
-sigma = 4
-alpha = 20
+#sigma = 4
+#alpha = 20
 
 # Model details 
-hierarchical = False
-n_prototypes = 15
-n_sub_prototypes = 3
-latent_size = 40
-n_classes = 10
+#hierarchical = False
+#n_prototypes = 15
+#n_sub_prototypes = 3
+#latent_size = 40
+#n_classes = 10
 
 # Loss weights for cross entropy, reconstruction loss and the two extra terms as described in the paper
 lambda_class = 20
@@ -38,11 +43,10 @@ lambda_ae = 1
 lambda_1 = 1
 lambda_2 = 1
 
-model_path = 'models/'
-prototype_path = 'images/prototypes/'
-decoding_path = 'images/decoding/'
 
-def run_epoch(hierarchical, model, dataloader, optimizer, iteration, epoch_loss, epoch_accuracy):
+def run_epoch(hierarchical, sigma, alpha,       # Model parameters
+        model, dataloader, optimizer,           # Training objects
+        iteration, epoch_loss, epoch_accuracy): # Evaluation 
     for i, (images, labels) in enumerate(dataloader):
         # Up the iteration by 1
         iteration += 1
@@ -52,7 +56,7 @@ def run_epoch(hierarchical, model, dataloader, optimizer, iteration, epoch_loss,
         images = images.to(device)
         labels = labels.to(device)
         oh_labels = one_hot(labels)
-
+        
         # Forward pass
         if hierarchical:
             _, decoding, (r1, r2, r3, r4, c) = model.forward(images)
@@ -76,7 +80,6 @@ def run_epoch(hierarchical, model, dataloader, optimizer, iteration, epoch_loss,
         else:
             loss = lambda_class * crossentropy_loss + lambda_ae * re + lambda_1 * r2 + lambda_2 * re
         
-        print(i, loss)
         epoch_loss += loss.item()
         preds = torch.argmax(c,dim=1)
         corr = torch.sum(torch.eq(preds,labels))
@@ -87,8 +90,9 @@ def run_epoch(hierarchical, model, dataloader, optimizer, iteration, epoch_loss,
         loss.backward()
         optimizer.step()
         optimizer.zero_grad()
-        if (i > 100):
+        if i > 10:
             break
+
     return iteration, epoch_loss, epoch_accuracy, decoding
 
 def save_images(prototype_path, decoding_path, prototypes, subprototypes, decoding, epoch):
@@ -102,12 +106,15 @@ def save_images(prototype_path, decoding_path, prototypes, subprototypes, decodi
     if subprototypes is not None: 
         save_image(subprototypes, prototype_path+'subprot{}.png'.format(epoch), nrow=3, normalize=True )
 
-def train_MNIST(hierarchical=False, learning_rate=0.002, training_epochs=1500, batch_size=250, save_every=50, sigma=4, alpha=20):
+def train_MNIST(hierarchical=False, n_prototypes=15, n_sub_prototypes =15, 
+                latent_size=40, n_classes=10,
+                learning_rate=0.0001, training_epochs=1500, 
+                batch_size=250, save_every=50, sigma=4, alpha=20):
     # Load data
     train_data = MNIST('./data', train=True, download=True, transform=transforms.Compose([
                                                 transforms.ToTensor(),
                                             ]))
-    test_data = MNIST('./data', train=False, download=True,transform=transforms.Compose([
+    test_data = MNIST('./data', train=False, download=True, transform=transforms.Compose([
                                                 transforms.ToTensor(),
                                             ]))
 
@@ -127,8 +134,9 @@ def train_MNIST(hierarchical=False, learning_rate=0.002, training_epochs=1500, b
         epoch_acc = 0.0
         it = 0
         
-        it, epoch_loss, epoch_acc, dec = run_epoch(hierarchical, proto, dataloader, optim, it, epoch_loss, epoch_acc)
-
+        it, epoch_loss, epoch_acc, dec = run_epoch(hierarchical, sigma, alpha, 
+                        proto, dataloader, optim, it, epoch_loss, epoch_acc)
+        print("one ep")
         # Get prototypes and decode them to display
         prototypes = proto.prototype.get_prototypes()
         prototypes = prototypes.view(-1, 10, 2, 2)
@@ -158,6 +166,5 @@ def train_MNIST(hierarchical=False, learning_rate=0.002, training_epochs=1500, b
         print("Epoch: ", epoch, "Loss: ", epoch_loss / it, "Acc: ", epoch_acc/it)
 
     testdataloader = DataLoader(test_data, batch_size=batch_size)
-
 
 train_MNIST( hierarchical =True,batch_size=250)

@@ -130,6 +130,7 @@ dmypy.json
 
 # Big files
 *.pt
+*.pth
 /data/MNIST/raw/*
 
 # No vscode files
@@ -143,3 +144,4 @@ dmypy.json
 # No big images
 images/*
 models/*
+data/*

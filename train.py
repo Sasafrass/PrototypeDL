@@ -1,6 +1,7 @@
 import numpy as np
 import os
 import torch 
+import argparse
 import torch.nn as nn
 from torchvision.datasets import MNIST
 from torch.utils.data import DataLoader
@@ -10,15 +11,17 @@ from torchvision.utils import save_image
 from preprocessing import batch_elastic_transform
 from model import PrototypeModel, HierarchyModel
 
-
 # Global parameters for device and reproducibility
-torch.manual_seed(7)
+parser = argparse.ArgumentParser()
+parser.add_argument('--seed', type=int, default=7,
+                        help='seed for reproduction')
+args = parser.parse_args()
+torch.manual_seed(args.seed)
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 model_path = 'models/'
 prototype_path = 'images/prototypes/'
 decoding_path = 'images/decoding/'
-
 
 # Training details
 #learning_rate = 0.0001
@@ -90,8 +93,7 @@ def run_epoch(hierarchical, sigma, alpha,       # Model parameters
         loss.backward()
         optimizer.step()
         optimizer.zero_grad()
-        if i > 10:
-            break
+
 
     return iteration, epoch_loss, epoch_accuracy, decoding
 
@@ -110,6 +112,12 @@ def train_MNIST(hierarchical=False, n_prototypes=15, n_sub_prototypes =15,
                 latent_size=40, n_classes=10,
                 learning_rate=0.0001, training_epochs=1500, 
                 batch_size=250, save_every=50, sigma=4, alpha=20):
+    # Prepare file
+    f = open("results.txt", "w")
+    f.write(', '.join([str(x) for x in [hierarchical, n_prototypes, latent_size, learning_rate]]))
+    f.write('\n')
+    f.close()
+
     # Load data
     train_data = MNIST('./data', train=True, download=True, transform=transforms.Compose([
                                                 transforms.ToTensor(),
@@ -136,7 +144,7 @@ def train_MNIST(hierarchical=False, n_prototypes=15, n_sub_prototypes =15,
         
         it, epoch_loss, epoch_acc, dec = run_epoch(hierarchical, sigma, alpha, 
                         proto, dataloader, optim, it, epoch_loss, epoch_acc)
-        print("one ep")
+
         # Get prototypes and decode them to display
         prototypes = proto.prototype.get_prototypes()
         prototypes = prototypes.view(-1, 10, 2, 2)
@@ -151,7 +159,6 @@ def train_MNIST(hierarchical=False, n_prototypes=15, n_sub_prototypes =15,
                 else:
                     subprotoset = torch.cat([subprotoset, subprototypes[i].view(-1,10,2,2)])
             subprototypes = proto.decoder(subprotoset)
-            print("saving sub")
 
         # Save images
         save_images(prototype_path, decoding_path, imgs, subprototypes, dec, epoch)
@@ -163,8 +170,54 @@ def train_MNIST(hierarchical=False, n_prototypes=15, n_sub_prototypes =15,
             torch.save(proto, model_path+"proto.pth")
 
         # Print statement to check on progress
-        print("Epoch: ", epoch, "Loss: ", epoch_loss / it, "Acc: ", epoch_acc/it)
+        with open("results.txt", "a") as f:
+            text = "Epoch: " + str(epoch) + " loss: " + str(epoch_loss / it) + " acc: " + str(epoch_acc/it)
+            print(text)
+            f.write(text)
+            f.write('\n')
+        
 
-    testdataloader = DataLoader(test_data, batch_size=batch_size)
+    # Test data
+    proto.eval()
+    test_dataloader = DataLoader(test_data, batch_size=batch_size)
 
-train_MNIST( hierarchical=False, batch_size=250)
+    test_accuracy = 0.0
+    test_loss = 0.0
+    it = 0
+    for i, (images, labels) in enumerate(test_dataloader):
+        it += 1
+        images = images.to(device)
+        labels = labels.to(device)
+        oh_labels = one_hot(labels)
+
+        # Forward pass
+        if hierarchical:
+            _, decoding, (r1, r2, r3, r4, c) = proto.forward(images)
+        else:
+            _, decoding, (r1, r2, c) = proto.forward(images)
+
+        ce = nn.CrossEntropyLoss()
+        # reconstruction error g(f(x)) and x
+        subtr = (decoding - images).view(-1, 28*28)
+        re = torch.mean(torch.norm(subtr, dim=1))
+
+        crossentropy_loss = ce(c, torch.argmax(oh_labels, dim=1))
+        if hierarchical:
+            loss = lambda_class * crossentropy_loss + lambda_ae * re + \
+                lambda_1 * r1 + lambda_2 * r2 + r3 + r4
+        else:
+            loss = lambda_class * crossentropy_loss + lambda_ae * re + lambda_1 * r2 + lambda_2 * re
+        
+        test_loss += loss.item()
+        preds = torch.argmax(c,dim=1)
+        corr = torch.sum(torch.eq(preds,labels))
+        size = labels.shape[0]
+        test_accuracy += corr.item()/size
+    with open("results.txt", "a") as f:
+        text = "Testdata loss: " +  str(test_loss/it) + " acc: " + str(test_accuracy/it)
+        print(text)
+        f.write(text)
+        f.write('\n')
+    
+
+train_MNIST(hierarchical=False, batch_size=250)

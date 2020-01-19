@@ -131,7 +131,7 @@ dmypy.json
 # Big files
 *.pt
 *.pth
-/data/MNIST/raw/*
+data/MNIST/raw/*
 
 # No vscode files
 .vscode/*

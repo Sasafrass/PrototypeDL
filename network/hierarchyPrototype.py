@@ -20,7 +20,10 @@ class HierarchyPrototypeClassifier(nn.Module):
         # initialize n_prototypes prototypes, they are of size latent_size
         self.prototypes = nn.Parameter(torch.nn.init.uniform_(torch.zeros(n_prototypes, latent_size))).to(device)
         #self.sub_prototypes, self.linear_layers = self._createSubprototypes(output_size, n_prototypes, n_sub_prototypes, latent_size)
-        self.sub_prototypes = nn.Parameter(torch.nn.init.uniform_(torch.zeros(n_sub_prototypes, latent_size))).to(device)
+        #self.sub_prototypes = nn.Parameter(torch.nn.init.uniform_(torch.zeros(n_sub_prototypes, latent_size))).to(device)
+        self.sub_prototypes = nn.Parameter(torch.zeros(n_sub_prototypes, latent_size)).to(device)
+
+        self.anna = "no" #nn.Parameter(torch.nn.init.uniform_(torch.zeros(n_sub_prototypes, latent_size))).to(device)
 
         # Linear layers for super prototypes and sub prototypes
         self.linear1 = nn.Linear(n_prototypes, output_size)
@@ -89,26 +92,31 @@ class HierarchyPrototypeClassifier(nn.Module):
 
         # All sub prototype stuff here
         # Forcing sub prototype to look like input
-        sub_input_dist = torch.zeros((len(input), len(self.sub_prototypes))).to(device)
-        sub_input_dist = list_of_distances(input, self.sub_prototypes)
+        #sub_input_dist = torch.zeros((len(input), len(self.sub_prototypes))).to(device)
+        #ub_input_dist = list_of_distances(input, self.sub_prototypes)
 
         # TODO: DIM VS AXIS: DOES IT MATTER?
         # r3 forces sub proto to be close to one training example
         # r4 forces one training example to be close to sub proto
-        r3 = torch.mean(torch.min(sub_input_dist, axis = 0).values)
-        r4 = torch.mean(torch.min(sub_input_dist, axis = 1).values)
+        #r3 = torch.mean(torch.min(sub_input_dist, axis = 0).values)
+        #r4 = torch.mean(torch.min(sub_input_dist, axis = 1).values)
+        r3 = 0
+        r4 = 0
 
         # Calculate distances for sub- and super prototypes
-        sub_super_dist = list_of_distances(self.prototypes, self.sub_prototypes)
+        #sub_super_dist = list_of_distances(self.prototypes, self.sub_prototypes)
 
         # Forcing sub prototype to look like super prototype and vice versa
         # r5 forces super prototype to be close to sub prototype
         # r6 forces sub prototype to be close to super prototype
-        r5 = torch.mean(torch.min(sub_super_dist, axis = 1).values)
-        r6 = torch.mean(torch.min(sub_super_dist, axis = 0).values)
+        #r5 = torch.mean(torch.min(sub_super_dist, axis = 1).values)
+        #r6 = torch.mean(torch.min(sub_super_dist, axis = 0).values)
+        r5 = 0
+        r6 = 0
 
         # Last forward pass of sub prototypes
-        sub_out = self.linear2(sub_input_dist)
+        #sub_out = self.linear2(sub_input_dist)
+        sub_out = 0
     
         return r1, r2, out, r3, r4, r5, r6, sub_out
 

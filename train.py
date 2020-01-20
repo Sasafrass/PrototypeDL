@@ -20,8 +20,8 @@ torch.manual_seed(args.seed)
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 model_path = 'models/'
-prototype_path = 'images2/prototypes/'
-decoding_path = 'images2/decoding/'
+prototype_path = 'images3/prototypes/'
+decoding_path = 'images3/decoding/'
 
 # Training details
 #learning_rate = 0.0001
@@ -123,7 +123,7 @@ def run_epoch(hierarchical, sigma, alpha,       # Model parameters
         if hierarchical:
 
             # Extra cross entropy for second linear layer
-            ce2 = ce(sub_c, torch.argmax(oh_labels, dim=1))
+            #ce2 = ce(sub_c, torch.argmax(oh_labels, dim=1))
 
             # Actual loss
             loss = lambda_class * crossentropy_loss + \
@@ -165,8 +165,8 @@ def save_images(prototype_path, decoding_path, prototypes, subprototypes, decodi
    
     save_image(prototypes, prototype_path+'seed{}prot{}.png'.format(args.seed, epoch), nrow=5, normalize=True)
     save_image(decoding, decoding_path+'seed{}dec{}.png'.format(args.seed, epoch), nrow=5, normalize=True)
-    if subprototypes is not None: 
-        save_image(subprototypes, prototype_path+'subprot{}.png'.format(epoch), nrow=3, normalize=True )
+    #if subprototypes is not None: 
+     #   save_image(subprototypes, prototype_path+'subprot{}.png'.format(epoch), nrow=3, normalize=True )
 
 def train_MNIST(hierarchical=False, n_prototypes=10, n_sub_prototypes = 20, 
                 latent_size=40, n_classes=10,
@@ -213,14 +213,14 @@ def train_MNIST(hierarchical=False, n_prototypes=10, n_sub_prototypes = 20,
             imgs = proto.decoder(prototypes)
 
             subprototypes = None
-            if hierarchical:
-                subprototypes = proto.prototype.get_sub_prototypes()
-                for i in range(len(subprototypes)):
-                    if i == 0:
-                        subprotoset = subprototypes[i].view(-1,10,2,2)
-                    else:
-                        subprotoset = torch.cat([subprotoset, subprototypes[i].view(-1,10,2,2)])
-                subprototypes = proto.decoder(subprotoset)
+            #if hierarchical:
+             #   subprototypes = proto.prototype.get_sub_prototypes()
+              #  for i in range(len(subprototypes)):
+               #     if i == 0:
+                #        subprotoset = subprototypes[i].view(-1,10,2,2)
+                 #   else:
+                  #      subprotoset = torch.cat([subprotoset, subprototypes[i].view(-1,10,2,2)])
+                #subprototypes = proto.decoder(subprotoset)
 
             # Save images
             save_images(prototype_path, decoding_path, imgs, subprototypes, dec, epoch)
@@ -236,6 +236,7 @@ def train_MNIST(hierarchical=False, n_prototypes=10, n_sub_prototypes = 20,
             print(text)
             f.write(text)
             f.write('\n')
+
 
     # Test data
     proto.eval()

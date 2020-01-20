@@ -20,8 +20,8 @@ torch.manual_seed(args.seed)
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 model_path = 'models/'
-prototype_path = 'images/prototypes/'
-decoding_path = 'images/decoding/'
+prototype_path = 'images2/prototypes/'
+decoding_path = 'images2/decoding/'
 
 # Training details
 #learning_rate = 0.0001
@@ -128,13 +128,15 @@ def run_epoch(hierarchical, sigma, alpha,       # Model parameters
             # Actual loss
             loss = lambda_class * crossentropy_loss + \
                 lambda_ae * re + \
-                lambda_1 * r1 + \
-                lambda_2 * r2 + \
-                r3 + \
-                r4 + \
-                r5 + \
-                r6 + \
-                lambda_class * ce2
+                r1 + \
+                r2
+                #r5
+                #r6
+                
+                # + 
+                #lambda_1 * r1 + 
+                #lambda_2 * r2 + 
+                #lambda_class * ce2 + 
         else:
             loss = lambda_class * crossentropy_loss + \
             lambda_ae * re + \
@@ -166,9 +168,9 @@ def save_images(prototype_path, decoding_path, prototypes, subprototypes, decodi
     if subprototypes is not None: 
         save_image(subprototypes, prototype_path+'subprot{}.png'.format(epoch), nrow=3, normalize=True )
 
-def train_MNIST(hierarchical=False, n_prototypes=15, n_sub_prototypes = 30, 
+def train_MNIST(hierarchical=False, n_prototypes=10, n_sub_prototypes = 20, 
                 latent_size=40, n_classes=10,
-                learning_rate=0.02, training_epochs=1500, 
+                learning_rate=0.001, training_epochs=1500, 
                 batch_size=250, save_every=1, sigma=4, alpha=20):
     # Prepare file
     f = open("results_s" + str(args.seed ) + ".txt", "w")
@@ -271,9 +273,9 @@ def train_MNIST(hierarchical=False, n_prototypes=15, n_sub_prototypes = 30,
                 lambda_2 * r2 +  \
                 r3 + \
                 r4 + \
-                r5 + \
-                r6 + \
                 lambda_class * ce2
+                #r5 + \
+                #r6 + \
         else:
             loss = lambda_class * crossentropy_loss + \
             lambda_ae * re + \

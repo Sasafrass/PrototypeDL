@@ -14,17 +14,11 @@ class HierarchyPrototypeClassifier(nn.Module):
         """
         super().__init__()
         self.n_prototypes = n_prototypes
-        self.n_sub_prototpes = n_sub_prototypes
         self.latent_size = latent_size
         self.output_size = output_size
         # initialize n_prototypes prototypes, they are of size latent_size
         self.prototypes = nn.Parameter(torch.nn.init.uniform_(torch.zeros(n_prototypes, latent_size))).to(device)
-        #self.sub_prototypes, self.linear_layers = self._createSubprototypes(output_size, n_prototypes, n_sub_prototypes, latent_size)
-        self.sub_prototypes = nn.Parameter(torch.nn.init.uniform_(torch.zeros(n_sub_prototypes, latent_size))).to(device)
-
-        # Linear layers for super prototypes and sub prototypes
-        self.linear1 = nn.Linear(n_prototypes, output_size)
-        self.linear2 = nn.Linear(n_sub_prototypes, output_size)
+        self.sub_prototypes, self.linear_layers = self._createSubprototypes(output_size, n_prototypes, n_sub_prototypes, latent_size)
 
 
     def _createSubprototypes(self, output_size, n_prototypes, n_sub_prototypes, latent_size):
@@ -64,53 +58,40 @@ class HierarchyPrototypeClassifier(nn.Module):
                 out : non-normalized logits for every data point 
                       in the batch, shape (batch_size, output_size)
         """
-        # Port input to float tensor
         input = input.float()
         # Latent space is 10x2x2 = 40
         input = input.view(len(input), self.latent_size)
-
-        # Distances between input and prototypes
         x = torch.zeros((len(input), len(self.prototypes))).to(device)
+
         x = list_of_distances(input, self.prototypes)
-        closest_index = torch.min(x, axis=0)
+        closest_index = torch.min(x, axis=1)
         
         # Terms r1, r2
-        # regularization r1: Be close to at least one training example 
-        # (get min distance to each datapoint=dimension 0)
-        r1 = torch.mean(closest_index.values)
+        min1 = torch.mean(closest_index.values)
+        min2 = torch.mean(torch.min(x, axis=0).values)
 
-        # regularization r2: Be close to at least one superprototype 
-        # (get min distance to each prototype=dimension 1)
-        r2 = torch.mean(torch.min(x, axis=1).values)
-
-        #compute the last prototype passes
+        #compute the sub prototypes
         prototype_index = closest_index.indices
-        out = self.linear1(x)
+        out = torch.zeros((len(input), self.output_size)).to(device)
 
-        # All sub prototype stuff here
-        # Forcing sub prototype to look like input
-        sub_input_dist = torch.zeros((len(input), len(self.sub_prototypes))).to(device)
-        sub_input_dist = list_of_distances(input, self.sub_prototypes)
+        sub_min1 = 0
+        sub_min2 = 0
 
-        # TODO: DIM VS AXIS: DOES IT MATTER?
-        # r3 forces sub proto to be close to one training example
-        # r4 forces one training example to be close to sub proto
-        r3 = torch.mean(torch.min(sub_input_dist, axis = 0).values)
-        r4 = torch.mean(torch.min(sub_input_dist, axis = 1).values)
+        for ix in range(self.n_prototypes):
+            rearrange_index = prototype_index == ix
+            test = rearrange_index.float().sum()
+            values = input[rearrange_index]
+            if len(values) == 0: continue
+            output, idx_sub_min1, idx_sub_min2 = self._compute_linear(values, ix)
+            sub_min1 += idx_sub_min1 #/ test 
+            sub_min2 += idx_sub_min2 #/ test
+            out[rearrange_index] = output
+        
+        # terms r3, r4
+        sub_min1 /= self.n_prototypes
+        sub_min2 /= self.n_prototypes
 
-        # Calculate distances for sub- and super prototypes
-        sub_super_dist = list_of_distances(self.prototypes, self.sub_prototypes)
-
-        # Forcing sub prototype to look like super prototype and vice versa
-        # r5 forces super prototype to be close to sub prototype
-        # r6 forces sub prototype to be close to super prototype
-        r5 = torch.mean(torch.min(sub_super_dist, axis = 1).values)
-        r6 = torch.mean(torch.min(sub_super_dist, axis = 0).values)
-
-        # Last forward pass of sub prototypes
-        sub_out = self.linear2(sub_input_dist)
-    
-        return r1, r2, out, r3, r4, r5, r6, sub_out
+        return min1, min2, sub_min1, sub_min2, out
 
     def get_prototypes(self):
         return self.prototypes

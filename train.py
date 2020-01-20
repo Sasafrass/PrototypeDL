@@ -88,9 +88,11 @@ def run_epoch_n(sigma, alpha, model, dataloader, optimizer,
 
 
     return iteration, epoch_loss, epoch_accuracy, decoding
+
 def run_epoch(hierarchical, sigma, alpha,       # Model parameters
         model, dataloader, optimizer,           # Training objects
         iteration, epoch_loss, epoch_accuracy): # Evaluation 
+
     for i, (images, labels) in enumerate(dataloader):
         # Up the iteration by 1
         iteration += 1
@@ -103,7 +105,7 @@ def run_epoch(hierarchical, sigma, alpha,       # Model parameters
 
         # Forward pass
         if hierarchical:
-            _, decoding, (r1, r2, r3, r4, c) = model.forward(images)
+            _, decoding, (r1, r2, c, r3, r4, r5, r6, sub_c) = model.forward(images)
         else:
             _, decoding, (r1, r2, c) = model.forward(images)
 
@@ -119,10 +121,25 @@ def run_epoch(hierarchical, sigma, alpha,       # Model parameters
 
         crossentropy_loss = ce(c, torch.argmax(oh_labels, dim=1))
         if hierarchical:
-            loss = lambda_class * crossentropy_loss + lambda_ae * re + \
-                lambda_1 * r1 + lambda_2 * r2 + r3 + r4
+
+            # Extra cross entropy for second linear layer
+            ce2 = ce(sub_c, torch.argmax(oh_labels, dim=1))
+
+            # Actual loss
+            loss = lambda_class * crossentropy_loss + \
+                lambda_ae * re + \
+                lambda_1 * r1 + \
+                lambda_2 * r2 + \
+                r3 + \
+                r4 + \
+                r5 + \
+                r6 + \
+                lambda_class * ce2
         else:
-            loss = lambda_class * crossentropy_loss + lambda_ae * re + lambda_1 * r2 + lambda_2 * re
+            loss = lambda_class * crossentropy_loss + \
+            lambda_ae * re + \
+            lambda_1 * r1 +  \
+            lambda_2 * r2
         
         epoch_loss += loss.item()
         preds = torch.argmax(c,dim=1)
@@ -149,10 +166,10 @@ def save_images(prototype_path, decoding_path, prototypes, subprototypes, decodi
     if subprototypes is not None: 
         save_image(subprototypes, prototype_path+'subprot{}.png'.format(epoch), nrow=3, normalize=True )
 
-def train_MNIST(hierarchical=False, n_prototypes=15, n_sub_prototypes =15, 
+def train_MNIST(hierarchical=False, n_prototypes=15, n_sub_prototypes = 30, 
                 latent_size=40, n_classes=10,
-                learning_rate=0.0001, training_epochs=1500, 
-                batch_size=250, save_every=25, sigma=4, alpha=20):
+                learning_rate=0.02, training_epochs=1500, 
+                batch_size=250, save_every=1, sigma=4, alpha=20):
     # Prepare file
     f = open("results_s" + str(args.seed ) + ".txt", "w")
     f.write(', '.join([str(x) for x in [hierarchical, n_prototypes, latent_size, learning_rate]]))
@@ -182,9 +199,9 @@ def train_MNIST(hierarchical=False, n_prototypes=15, n_sub_prototypes =15,
         epoch_loss = 0.0
         epoch_acc = 0.0
         it = 0
-        
-        #it, epoch_loss, epoch_acc, dec = run_epoch(hierarchical, sigma, alpha, proto, dataloader, optim, it, epoch_loss, epoch_acc)
-        it, epoch_loss, epoch_acc, dec = run_epoch_n(sigma, alpha, proto, dataloader, optim, it, epoch_loss, epoch_acc)
+
+        it, epoch_loss, epoch_acc, dec = run_epoch(hierarchical, sigma, alpha, proto, dataloader, optim, it, epoch_loss, epoch_acc)
+        #it, epoch_loss, epoch_acc, dec = run_epoch_n(sigma, alpha, proto, dataloader, optim, it, epoch_loss, epoch_acc)
 
         # To save time
         if epoch % save_every == 0:
@@ -233,7 +250,7 @@ def train_MNIST(hierarchical=False, n_prototypes=15, n_sub_prototypes =15,
 
         # Forward pass
         if hierarchical:
-            _, decoding, (r1, r2, r3, r4, c) = proto.forward(images)
+            _, decoding, (r1, r2, c, r3, r4, r5, r6, sub_c) = proto.forward(images)
         else:
             _, decoding, (r1, r2, c) = proto.forward(images)
 
@@ -244,10 +261,24 @@ def train_MNIST(hierarchical=False, n_prototypes=15, n_sub_prototypes =15,
 
         crossentropy_loss = ce(c, torch.argmax(oh_labels, dim=1))
         if hierarchical:
-            loss = lambda_class * crossentropy_loss + lambda_ae * re + \
-                lambda_1 * r1 + lambda_2 * r2 + r3 + r4
+            # Extra cross entropy for second linear layer
+            ce2 = ce(sub_c, torch.argmax(oh_labels, dim=1))
+
+            # Actual loss
+            loss = lambda_class * crossentropy_loss + \
+                lambda_ae * re + \
+                lambda_1 * r1 +  \
+                lambda_2 * r2 +  \
+                r3 + \
+                r4 + \
+                r5 + \
+                r6 + \
+                lambda_class * ce2
         else:
-            loss = lambda_class * crossentropy_loss + lambda_ae * re + lambda_1 * r2 + lambda_2 * re
+            loss = lambda_class * crossentropy_loss + \
+            lambda_ae * re + \
+            lambda_1 * r1 +  \
+            lambda_2 * r2
         
         test_loss += loss.item()
         preds = torch.argmax(c,dim=1)
@@ -261,4 +292,4 @@ def train_MNIST(hierarchical=False, n_prototypes=15, n_sub_prototypes =15,
         f.write('\n')
     
 
-train_MNIST(hierarchical=False, batch_size=250)
+train_MNIST(hierarchical=True, batch_size=250)

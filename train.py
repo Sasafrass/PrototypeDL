@@ -45,6 +45,10 @@ lambda_class = 20
 lambda_ae = 1
 lambda_1 = 1
 lambda_2 = 1
+lambda_3 = 1
+lambda_4 = 1
+lambda_5 = 1
+lambda_6 = 1
 
 def run_epoch_n(sigma, alpha, model, dataloader, optimizer,
         iteration,epoch_loss, epoch_accuracy):
@@ -128,15 +132,13 @@ def run_epoch(hierarchical, sigma, alpha,       # Model parameters
             # Actual loss
             loss = lambda_class * crossentropy_loss + \
                 lambda_ae * re + \
-                r1 + \
-                r2
-                #r5
-                #r6
-                
-                # + 
-                #lambda_1 * r1 + 
-                #lambda_2 * r2 + 
-                #lambda_class * ce2 + 
+                lambda_1 * r1 + \
+                lambda_2 * r2 + \
+                lambda_class * ce2 + \
+                lambda_3 * r3 + \
+                lambda_4 * r4 + \
+                lambda_5 * r5 + \
+                lambda_6 * r6  
         else:
             loss = lambda_class * crossentropy_loss + \
             lambda_ae * re + \
@@ -270,13 +272,13 @@ def train_MNIST(hierarchical=False, n_prototypes=10, n_sub_prototypes = 20,
             # Actual loss
             loss = lambda_class * crossentropy_loss + \
                 lambda_ae * re + \
-                lambda_1 * r1 +  \
-                lambda_2 * r2 +  \
-                r3 + \
-                r4 + \
-                lambda_class * ce2
-                #r5 + \
-                #r6 + \
+                lambda_1 * r1 + \
+                lambda_2 * r2 + \
+                lambda_class * ce2 + \
+                lambda_3 * r3 + \
+                lambda_4 * r4 + \
+                lambda_5 * r5 + \
+                lambda_6 * r6  
         else:
             loss = lambda_class * crossentropy_loss + \
             lambda_ae * re + \

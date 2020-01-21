@@ -13,15 +13,15 @@ from model import PrototypeModel, HierarchyModel
 
 # Global parameters for device and reproducibility
 parser = argparse.ArgumentParser()
-parser.add_argument('--seed', type=int, default=7,
+parser.add_argument('--seed', type=int, default=8,
                         help='seed for reproduction')
 args = parser.parse_args()
 torch.manual_seed(args.seed)
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 model_path = 'models/'
-prototype_path = 'images3/prototypes/'
-decoding_path = 'images3/decoding/'
+prototype_path = 'imagesmorn/prototypes/'
+decoding_path = 'imagesmorn/decoding/'
 
 # Training details
 #learning_rate = 0.0001

@@ -20,8 +20,8 @@ class HierarchyPrototypeClassifier(nn.Module):
         # initialize n_prototypes prototypes, they are of size latent_size
         self.prototypes = nn.Parameter(torch.nn.init.uniform_(torch.zeros(n_prototypes, latent_size))).to(device)
         #self.sub_prototypes, self.linear_layers = self._createSubprototypes(output_size, n_prototypes, n_sub_prototypes, latent_size)
-        #self.sub_prototypes = nn.Parameter(torch.nn.init.uniform_(torch.zeros(n_sub_prototypes, latent_size))).to(device)
-        self.sub_prototypes = nn.Parameter(torch.zeros(n_sub_prototypes, latent_size)).to(device)
+        self.sub_prototypes = nn.Parameter(torch.nn.init.uniform_(torch.zeros(n_sub_prototypes, latent_size))).to(device)
+        #self.sub_prototypes = nn.Parameter(torch.zeros(n_sub_prototypes, latent_size)).to(device)
 
         self.anna = "no" #nn.Parameter(torch.nn.init.uniform_(torch.zeros(n_sub_prototypes, latent_size))).to(device)
 

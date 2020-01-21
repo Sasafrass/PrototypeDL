@@ -13,15 +13,15 @@ from model import PrototypeModel, HierarchyModel
 
 # Global parameters for device and reproducibility
 parser = argparse.ArgumentParser()
-parser.add_argument('--seed', type=int, default=7,
+parser.add_argument('--seed', type=int, default=8,
                         help='seed for reproduction')
 args = parser.parse_args()
 torch.manual_seed(args.seed)
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 model_path = 'models/'
-prototype_path = 'images3/prototypes/'
-decoding_path = 'images3/decoding/'
+prototype_path = 'imagesLowClassificationL/prototypes/'
+decoding_path = 'imagesLowClassificationL/decoding/'
 
 # Training details
 #learning_rate = 0.0001
@@ -41,10 +41,10 @@ decoding_path = 'images3/decoding/'
 #n_classes = 10
 
 # Loss weights for cross entropy, reconstruction loss and the two extra terms as described in the paper
-lambda_class = 20
+lambda_class = 5
 lambda_ae = 1
-lambda_1 = 1
-lambda_2 = 1
+lambda_1 = 0
+lambda_2 = 0
 lambda_3 = 1
 lambda_4 = 1
 lambda_5 = 1
@@ -93,9 +93,9 @@ def run_epoch_n(sigma, alpha, model, dataloader, optimizer,
 
     return iteration, epoch_loss, epoch_accuracy, decoding
 
-def run_epoch(hierarchical, sigma, alpha,       # Model parameters
-        model, dataloader, optimizer,           # Training objects
-        iteration, epoch_loss, epoch_accuracy): # Evaluation 
+def run_epoch(hierarchical, sigma, alpha,                     # Model parameters
+        model, dataloader, optimizer,                         # Training objects
+        iteration, epoch_loss, epoch_accuracy, sub_accuracy): # Evaluation 
 
     for i, (images, labels) in enumerate(dataloader):
         # Up the iteration by 1
@@ -127,7 +127,7 @@ def run_epoch(hierarchical, sigma, alpha,       # Model parameters
         if hierarchical:
 
             # Extra cross entropy for second linear layer
-            #ce2 = ce(sub_c, torch.argmax(oh_labels, dim=1))
+            ce2 = ce(sub_c, torch.argmax(oh_labels, dim=1))
 
             # Actual loss
             loss = lambda_class * crossentropy_loss + \
@@ -145,11 +145,18 @@ def run_epoch(hierarchical, sigma, alpha,       # Model parameters
             lambda_1 * r1 +  \
             lambda_2 * r2
         
+        # For super prototype cross entropy term
         epoch_loss += loss.item()
         preds = torch.argmax(c,dim=1)
         corr = torch.sum(torch.eq(preds,labels))
         size = labels.shape[0]
         epoch_accuracy += corr.item()/size
+        epoch_accuracy = 0
+
+        # Also for sub prototype cross entropy term
+        subpreds = torch.argmax(sub_c, dim=1)
+        subcorr  = torch.sum(torch.eq(subpreds, labels))
+        sub_accuracy += subcorr.item()/size
 
         # Do backward pass and ADAM steps
         loss.backward()
@@ -157,7 +164,7 @@ def run_epoch(hierarchical, sigma, alpha,       # Model parameters
         optimizer.zero_grad()
 
 
-    return iteration, epoch_loss, epoch_accuracy, decoding
+    return iteration, epoch_loss, epoch_accuracy, sub_accuracy, decoding
 
 def save_images(prototype_path, decoding_path, prototypes, subprototypes, decoding, epoch):
     if not os.path.exists(prototype_path):
@@ -167,8 +174,8 @@ def save_images(prototype_path, decoding_path, prototypes, subprototypes, decodi
    
     save_image(prototypes, prototype_path+'seed{}prot{}.png'.format(args.seed, epoch), nrow=5, normalize=True)
     save_image(decoding, decoding_path+'seed{}dec{}.png'.format(args.seed, epoch), nrow=5, normalize=True)
-    #if subprototypes is not None: 
-     #   save_image(subprototypes, prototype_path+'subprot{}.png'.format(epoch), nrow=3, normalize=True )
+    if subprototypes is not None: 
+        save_image(subprototypes, prototype_path+'subprot{}.png'.format(epoch), nrow=2, normalize=True )
 
 def train_MNIST(hierarchical=False, n_prototypes=10, n_sub_prototypes = 20, 
                 latent_size=40, n_classes=10,
@@ -202,9 +209,10 @@ def train_MNIST(hierarchical=False, n_prototypes=10, n_sub_prototypes = 20,
     for epoch in range(training_epochs):
         epoch_loss = 0.0
         epoch_acc = 0.0
+        sub_acc   = 0.0
         it = 0
 
-        it, epoch_loss, epoch_acc, dec = run_epoch(hierarchical, sigma, alpha, proto, dataloader, optim, it, epoch_loss, epoch_acc)
+        it, epoch_loss, epoch_acc, sub_acc, dec = run_epoch(hierarchical, sigma, alpha, proto, dataloader, optim, it, epoch_loss, epoch_acc, sub_acc)
         #it, epoch_loss, epoch_acc, dec = run_epoch_n(sigma, alpha, proto, dataloader, optim, it, epoch_loss, epoch_acc)
 
         # To save time
@@ -215,14 +223,14 @@ def train_MNIST(hierarchical=False, n_prototypes=10, n_sub_prototypes = 20,
             imgs = proto.decoder(prototypes)
 
             subprototypes = None
-            #if hierarchical:
-             #   subprototypes = proto.prototype.get_sub_prototypes()
-              #  for i in range(len(subprototypes)):
-               #     if i == 0:
-                #        subprotoset = subprototypes[i].view(-1,10,2,2)
-                 #   else:
-                  #      subprotoset = torch.cat([subprotoset, subprototypes[i].view(-1,10,2,2)])
-                #subprototypes = proto.decoder(subprotoset)
+            if hierarchical:
+                subprototypes = proto.prototype.get_sub_prototypes()
+                for i in range(len(subprototypes)):
+                    if i == 0:
+                        subprotoset = subprototypes[i].view(-1,10,2,2)
+                    else:
+                        subprotoset = torch.cat([subprotoset, subprototypes[i].view(-1,10,2,2)])
+                subprototypes = proto.decoder(subprotoset)
 
             # Save images
             save_images(prototype_path, decoding_path, imgs, subprototypes, dec, epoch)
@@ -234,7 +242,7 @@ def train_MNIST(hierarchical=False, n_prototypes=10, n_sub_prototypes = 20,
 
         # Print statement to check on progress
         with open("results_s" + str(args.seed ) + ".txt", "a") as f:
-            text = "Epoch: " + str(epoch) + " loss: " + str(epoch_loss / it) + " acc: " + str(epoch_acc/it)
+            text = "Epoch: " + str(epoch) + " loss: " + str(epoch_loss / it) + " acc: " + str(epoch_acc/it) + " sub_acc: " + str(sub_acc/it)
             print(text)
             f.write(text)
             f.write('\n')

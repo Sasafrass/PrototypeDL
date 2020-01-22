@@ -20,8 +20,8 @@ torch.manual_seed(args.seed)
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 model_path = 'models/'
-prototype_path = 'imagesLowClassificationL/prototypes/'
-decoding_path = 'imagesLowClassificationL/decoding/'
+prototype_path = 'imagesl3l4l5l6/prototypes/'
+decoding_path = 'imagesl3l4l5l6/decoding/'
 
 # Training details
 #learning_rate = 0.0001
@@ -41,7 +41,8 @@ decoding_path = 'imagesLowClassificationL/decoding/'
 #n_classes = 10
 
 # Loss weights for cross entropy, reconstruction loss and the two extra terms as described in the paper
-lambda_class = 5
+lambda_class1 = 20
+lambda_class2 = 20
 lambda_ae = 1
 lambda_1 = 0
 lambda_2 = 0
@@ -130,17 +131,15 @@ def run_epoch(hierarchical, sigma, alpha,                     # Model parameters
             ce2 = ce(sub_c, torch.argmax(oh_labels, dim=1))
 
             # Actual loss
-            loss = lambda_class * crossentropy_loss + \
+            loss = lambda_class1 * crossentropy_loss + \
                 lambda_ae * re + \
-                lambda_1 * r1 + \
-                lambda_2 * r2 + \
-                lambda_class * ce2 + \
+                lambda_class2 * ce2 + \
                 lambda_3 * r3 + \
                 lambda_4 * r4 + \
                 lambda_5 * r5 + \
-                lambda_6 * r6  
+                lambda_6 * r6 
         else:
-            loss = lambda_class * crossentropy_loss + \
+            loss = lambda_class1 * crossentropy_loss + \
             lambda_ae * re + \
             lambda_1 * r1 +  \
             lambda_2 * r2
@@ -177,7 +176,7 @@ def save_images(prototype_path, decoding_path, prototypes, subprototypes, decodi
     if subprototypes is not None: 
         save_image(subprototypes, prototype_path+'subprot{}.png'.format(epoch), nrow=2, normalize=True )
 
-def train_MNIST(hierarchical=False, n_prototypes=10, n_sub_prototypes = 20, 
+def train_MNIST(hierarchical=False, n_prototypes=10, n_sub_prototypes = 15, 
                 latent_size=40, n_classes=10,
                 learning_rate=0.001, training_epochs=1500, 
                 batch_size=250, save_every=1, sigma=4, alpha=20):
@@ -278,17 +277,15 @@ def train_MNIST(hierarchical=False, n_prototypes=10, n_sub_prototypes = 20,
             ce2 = ce(sub_c, torch.argmax(oh_labels, dim=1))
 
             # Actual loss
-            loss = lambda_class * crossentropy_loss + \
+            loss = lambda_class1 * crossentropy_loss + \
                 lambda_ae * re + \
-                lambda_1 * r1 + \
-                lambda_2 * r2 + \
-                lambda_class * ce2 + \
+                lambda_class2 * ce2 + \
                 lambda_3 * r3 + \
                 lambda_4 * r4 + \
                 lambda_5 * r5 + \
                 lambda_6 * r6  
         else:
-            loss = lambda_class * crossentropy_loss + \
+            loss = lambda_class1 * crossentropy_loss + \
             lambda_ae * re + \
             lambda_1 * r1 +  \
             lambda_2 * r2

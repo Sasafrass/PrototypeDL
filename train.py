@@ -20,8 +20,8 @@ torch.manual_seed(args.seed)
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 model_path = 'models/'
-prototype_path = 'imagesl3l4l5l6/prototypes/'
-decoding_path = 'imagesl3l4l5l6/decoding/'
+prototype_path = 'newproto/prototypes/'
+decoding_path = 'newproto/decoding/'
 
 # Training details
 #learning_rate = 0.0001
@@ -137,7 +137,7 @@ def run_epoch(hierarchical, sigma, alpha,                     # Model parameters
                 lambda_4 * r4
         else:
             crossentropy_loss = ce(c, torch.argmax(oh_labels, dim=1))
-            loss = lambda_class1 * crossentropy_loss + \
+            loss = lambda_class_sup * crossentropy_loss + \
             lambda_ae * re + \
             lambda_1 * r1 +  \
             lambda_2 * r2

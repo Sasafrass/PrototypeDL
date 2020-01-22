@@ -274,8 +274,7 @@ def train_MNIST(hierarchical=False, n_prototypes=10, n_sub_prototypes = 15,
         # reconstruction error g(f(x)) and x
         subtr = (decoding - images).view(-1, 28*28)
         re = torch.mean(torch.norm(subtr, dim=1))
-
-        crossentropy_loss = ce(c, torch.argmax(oh_labels, dim=1))
+        
         if hierarchical:
             sup_ce = ce(sup_c, torch.argmax(oh_labels, dim=1))
             # Extra cross entropy for second linear layer

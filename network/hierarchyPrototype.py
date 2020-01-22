@@ -113,7 +113,7 @@ class HierarchyPrototypeClassifier(nn.Module):
         r6 = torch.mean(torch.min(sub_super_dist, axis = 0).values)
         # Last forward pass of sub prototypes
         sub_out = self.linear2(sub_input_dist)
-    
+
         return r1, r2, out, r3, r4, r5, r6, sub_out
 
     def get_prototypes(self):

@@ -41,8 +41,8 @@ decoding_path = 'imagesl3l4l5l6/decoding/'
 #n_classes = 10
 
 # Loss weights for cross entropy, reconstruction loss and the two extra terms as described in the paper
-lambda_class1 = 20
-lambda_class2 = 20
+lambda_class1 = 20 #CE for supers
+lambda_class2 = 20 #CE for subs
 lambda_ae = 1
 lambda_1 = 0
 lambda_2 = 0
@@ -152,10 +152,11 @@ def run_epoch(hierarchical, sigma, alpha,                     # Model parameters
         epoch_accuracy += corr.item()/size
         epoch_accuracy = 0
 
-        # Also for sub prototype cross entropy term
-        subpreds = torch.argmax(sub_c, dim=1)
-        subcorr  = torch.sum(torch.eq(subpreds, labels))
-        sub_accuracy += subcorr.item()/size
+        if(hierarchical):
+            # Also for sub prototype cross entropy term
+            subpreds = torch.argmax(sub_c, dim=1)
+            subcorr  = torch.sum(torch.eq(subpreds, labels))
+            sub_accuracy += subcorr.item()/size
 
         # Do backward pass and ADAM steps
         loss.backward()

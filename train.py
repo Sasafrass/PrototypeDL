@@ -41,15 +41,13 @@ decoding_path = 'imagesl3l4l5l6/decoding/'
 #n_classes = 10
 
 # Loss weights for cross entropy, reconstruction loss and the two extra terms as described in the paper
-lambda_class1 = 20 #CE for supers
-lambda_class2 = 20 #CE for subs
+lambda_class_sup = 20 #CE for supers
+lambda_class_sub = 20 #CE for subs
 lambda_ae = 1
-lambda_1 = 0
-lambda_2 = 0
+lambda_1 = 1
+lambda_2 = 1
 lambda_3 = 1
 lambda_4 = 1
-lambda_5 = 1
-lambda_6 = 1
 
 def run_epoch_n(sigma, alpha, model, dataloader, optimizer,
         iteration,epoch_loss, epoch_accuracy):
@@ -110,7 +108,7 @@ def run_epoch(hierarchical, sigma, alpha,                     # Model parameters
 
         # Forward pass
         if hierarchical:
-            _, decoding, (r1, r2, c, r3, r4, r5, r6, sub_c) = model.forward(images)
+            _, decoding, (sub_c, sup_c, r1, r2, r3, r4) = model.forward(images)
         else:
             _, decoding, (r1, r2, c) = model.forward(images)
 
@@ -123,40 +121,46 @@ def run_epoch(hierarchical, sigma, alpha,                     # Model parameters
         
         # Paper does 20 * ce and lambda_n = 1 for each regularization term
         # Calculate loss and get accuracy etc.
-
-        crossentropy_loss = ce(c, torch.argmax(oh_labels, dim=1))
+        
         if hierarchical:
-
+            sup_ce = ce(sup_c, torch.argmax(oh_labels, dim=1))
             # Extra cross entropy for second linear layer
-            ce2 = ce(sub_c, torch.argmax(oh_labels, dim=1))
+            sub_ce = ce(sub_c, torch.argmax(oh_labels, dim=1))
 
             # Actual loss
-            loss = lambda_class1 * crossentropy_loss + \
+            loss = lambda_class_sup * sup_ce + \
                 lambda_ae * re + \
-                lambda_class2 * ce2 + \
+                lambda_class_sub * sub_ce + \
+                lambda_1 * r1 + \
+                lambda_2 * r2 + \
                 lambda_3 * r3 + \
-                lambda_4 * r4 + \
-                lambda_5 * r5 + \
-                lambda_6 * r6 
+                lambda_4 * r4
         else:
+            crossentropy_loss = ce(c, torch.argmax(oh_labels, dim=1))
             loss = lambda_class1 * crossentropy_loss + \
             lambda_ae * re + \
             lambda_1 * r1 +  \
             lambda_2 * r2
-        
-        # For super prototype cross entropy term
-        epoch_loss += loss.item()
-        preds = torch.argmax(c,dim=1)
-        corr = torch.sum(torch.eq(preds,labels))
-        size = labels.shape[0]
-        epoch_accuracy += corr.item()/size
-        epoch_accuracy = 0
 
         if(hierarchical):
+            # For super prototype cross entropy term
+            epoch_loss += loss.item()
+            preds = torch.argmax(sup_c,dim=1)
+            corr = torch.sum(torch.eq(preds,labels))
+            size = labels.shape[0]
+            epoch_accuracy += corr.item()/size
+
             # Also for sub prototype cross entropy term
             subpreds = torch.argmax(sub_c, dim=1)
             subcorr  = torch.sum(torch.eq(subpreds, labels))
             sub_accuracy += subcorr.item()/size
+        else:
+            # For prototype cross entropy term
+            epoch_loss += loss.item()
+            preds = torch.argmax(c,dim=1)
+            corr = torch.sum(torch.eq(preds,labels))
+            size = labels.shape[0]
+            epoch_accuracy += corr.item()/size
 
         # Do backward pass and ADAM steps
         loss.backward()
@@ -247,7 +251,6 @@ def train_MNIST(hierarchical=False, n_prototypes=10, n_sub_prototypes = 15,
             f.write(text)
             f.write('\n')
 
-
     # Test data
     proto.eval()
     test_dataloader = DataLoader(test_data, batch_size=batch_size)
@@ -263,9 +266,9 @@ def train_MNIST(hierarchical=False, n_prototypes=10, n_sub_prototypes = 15,
 
         # Forward pass
         if hierarchical:
-            _, decoding, (r1, r2, c, r3, r4, r5, r6, sub_c) = proto.forward(images)
+            _, decoding, (sub_c, sup_c, r1, r2, r3, r4) = model.forward(images)
         else:
-            _, decoding, (r1, r2, c) = proto.forward(images)
+            _, decoding, (r1, r2, c) = model.forward(images)
 
         ce = nn.CrossEntropyLoss()
         # reconstruction error g(f(x)) and x
@@ -274,28 +277,45 @@ def train_MNIST(hierarchical=False, n_prototypes=10, n_sub_prototypes = 15,
 
         crossentropy_loss = ce(c, torch.argmax(oh_labels, dim=1))
         if hierarchical:
+            sup_ce = ce(sup_c, torch.argmax(oh_labels, dim=1))
             # Extra cross entropy for second linear layer
-            ce2 = ce(sub_c, torch.argmax(oh_labels, dim=1))
+            sub_ce = ce(sub_c, torch.argmax(oh_labels, dim=1))
 
             # Actual loss
-            loss = lambda_class1 * crossentropy_loss + \
+            loss = lambda_class_sup * sup_ce + \
                 lambda_ae * re + \
-                lambda_class2 * ce2 + \
+                lambda_class_sub * sub_ce + \
+                lambda_1 * r1 + \
+                lambda_2 * r2 + \
                 lambda_3 * r3 + \
-                lambda_4 * r4 + \
-                lambda_5 * r5 + \
-                lambda_6 * r6  
+                lambda_4 * r4
         else:
+            crossentropy_loss = ce(c, torch.argmax(oh_labels, dim=1))
             loss = lambda_class1 * crossentropy_loss + \
             lambda_ae * re + \
             lambda_1 * r1 +  \
             lambda_2 * r2
-        
-        test_loss += loss.item()
-        preds = torch.argmax(c,dim=1)
-        corr = torch.sum(torch.eq(preds,labels))
-        size = labels.shape[0]
-        test_accuracy += corr.item()/size
+
+        if(hierarchical):
+            # For super prototype cross entropy term
+            test_loss += loss.item()
+            preds = torch.argmax(sup_c,dim=1)
+            corr = torch.sum(torch.eq(preds,labels))
+            size = labels.shape[0]
+            test_accuracy += corr.item()/size
+
+            # Also for sub prototype cross entropy term
+            subpreds = torch.argmax(sub_c, dim=1)
+            subcorr  = torch.sum(torch.eq(subpreds, labels))
+            sub_accuracy += subcorr.item()/size
+        else:
+            # For prototype cross entropy term
+            test_loss += loss.item()
+            preds = torch.argmax(c,dim=1)
+            corr = torch.sum(torch.eq(preds,labels))
+            size = labels.shape[0]
+            test_accuracy += corr.item()/size
+
     with open("results_s" + str(args.seed ) + ".txt", "a") as f:
         text = "Testdata loss: " +  str(test_loss/it) + " acc: " + str(test_accuracy/it)
         print(text)

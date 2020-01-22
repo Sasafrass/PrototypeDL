@@ -48,7 +48,6 @@ class PrototypeClassifier(nn.Module):
         # regularization r2: Be close to at least one prototype 
         # (get min distance to each prototype=dimension 1)
         min2 = torch.mean(torch.min(x, axis=1).values)
-        print(self.prototypes[0])
         return min1, min2, out
 
     def get_prototypes(self):

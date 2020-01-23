@@ -24,7 +24,18 @@ class HierarchyPrototypeClassifier(nn.Module):
         #self.sub_prototypes = nn.Parameter(torch.zeros(n_sub_prototypes, latent_size)).to(device)
 
         # Linear layers for super prototypes and sub prototypes
-        self.linear1 = nn.Linear(n_sup_prototypes, output_size)
+        if n_sup_prototypes == output_size:
+            self.linear1 = nn.Linear(n_sup_prototypes, output_size)
+            self.linear1.weight.data.copy_(-torch.eye(n_sup_prototypes))
+            
+            # Set linear layer parameters to no grad so negative identity remains intact
+            for param in self.linear1.parameters():
+                param.requires_grad = False
+
+        # If n_sup_prototypes is different from number of classes, make linear1 learnable
+        else: 
+            self.linear1 = nn.Linear(n_sup_prototypes, output_size)
+
         self.linear2 = nn.Linear(n_sub_prototypes, output_size)
 
 

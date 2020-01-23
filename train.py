@@ -13,15 +13,15 @@ from model import PrototypeModel, HierarchyModel
 
 # Global parameters for device and reproducibility
 parser = argparse.ArgumentParser()
-parser.add_argument('--seed', type=int, default=8,
+parser.add_argument('--seed', type=int, default=42,
                         help='seed for reproduction')
 args = parser.parse_args()
 torch.manual_seed(args.seed)
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 model_path = 'models/'
-prototype_path = 'newproto/prototypes/'
-decoding_path = 'newproto/decoding/'
+prototype_path = 'negidentity/prototypes/'
+decoding_path = 'negidentity/decoding/'
 
 # Training details
 #learning_rate = 0.0001
@@ -179,9 +179,9 @@ def save_images(prototype_path, decoding_path, prototypes, subprototypes, decodi
     save_image(prototypes, prototype_path+'seed{}prot{}.png'.format(args.seed, epoch), nrow=5, normalize=True)
     save_image(decoding, decoding_path+'seed{}dec{}.png'.format(args.seed, epoch), nrow=5, normalize=True)
     if subprototypes is not None: 
-        save_image(subprototypes, prototype_path+'subprot{}.png'.format(epoch), nrow=2, normalize=True )
+        save_image(subprototypes, prototype_path+'subprot{}.png'.format(epoch), nrow=5, normalize=True )
 
-def train_MNIST(hierarchical=False, n_prototypes=10, n_sub_prototypes = 15, 
+def train_MNIST(hierarchical=False, n_prototypes=10, n_sub_prototypes = 30, 
                 latent_size=40, n_classes=10,
                 learning_rate=0.001, training_epochs=1500, 
                 batch_size=250, save_every=1, sigma=4, alpha=20):

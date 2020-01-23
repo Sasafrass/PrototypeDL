@@ -11,4 +11,4 @@ dependencies:
   - pytorch=1.2.0=py3.7_cuda10.0.130_cudnn7.6.2_0
   - scipy=1.2.1=py37h09a28d5_1
   - torchvision=0.2.2=py_3
-
+  - pillow=6.1

@@ -40,29 +40,14 @@ class PrototypeClassifier(nn.Module):
         input = input.float()
         # Latent space is 10x2x2 = 40
         input = input.view(len(input), self.latent_size)
-        x = torch.zeros((len(input), len(self.prototypes))).to(device)
-        #proto_matrix = self.prototypes.repeat()
-
-        #for i, input_row in enumerate(input): # TODO: Remove loop
-        #    x[i] = torch.sqrt(torch.sum((input_row - self.prototypes)**2))
-        #    print(x)
-
-        #x = torch.zeros((len(input), len(self.prototypes)))
-        #for i, input_row in enumerate(input):
-        #    for j, prot_row in enumerate(self.prototypes):
-        #        x[i][j] = torch.sqrt(torch.sum((input_row - prot_row)**2))
-
         x = list_of_distances(input, self.prototypes)
         out = self.linear1(x)
-        #print(x)
-
         # regularization r1: Be close to at least one training example 
         # (get min distance to each datapoint=dimension 0)
         min1 = torch.mean(torch.min(x, axis=0).values)
         # regularization r2: Be close to at least one prototype 
         # (get min distance to each prototype=dimension 1)
         min2 = torch.mean(torch.min(x, axis=1).values)
-
         return min1, min2, out
 
     def get_prototypes(self):

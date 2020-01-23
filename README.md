@@ -18,3 +18,9 @@ conda activate prototype
 conda install -n prototype <your-packages>
 conda env export > environment_prototype.yml
 ```
+
+## Other things about the environment
+I hate it! Lisa doesnt have all the up to date packages! So I removed the ipython notebook dependencies and just include the training for this guy.
+If you want to use it on lisa, use `environment_prototype2.yml` instead.
+This includes an older version of `pillow`, see https://github.com/python-pillow/Pillow/issues/4130. 
+

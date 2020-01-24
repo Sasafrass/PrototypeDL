@@ -186,9 +186,7 @@ def train_MNIST(hierarchical=False, n_prototypes=10, n_sub_prototypes = 30,
             save_images(prototype_path, decoding_path, imgs, subprototypes, dec, epoch)
 
             # Save model
-            if not os.path.exists(model_path):
-                os.makedirs(model_path)
-            torch.save(proto, model_path+"proto.pth")
+            torch.save(proto, model_path+"proto{}.pth".format(args.seed))
 
         # Print statement to check on progress
         with open("results_s" + str(args.seed ) + ".txt", "a") as f:
@@ -198,7 +196,9 @@ def train_MNIST(hierarchical=False, n_prototypes=10, n_sub_prototypes = 30,
             f.write('\n')
 
     # Test data
+    torch.save(proto, model_path+"final.pth")
     proto.eval()
+    
     test_dataloader = DataLoader(test_data, batch_size=batch_size)
 
     test_accuracy = 0.0

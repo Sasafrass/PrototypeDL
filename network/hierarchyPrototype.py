@@ -19,9 +19,7 @@ class HierarchyPrototypeClassifier(nn.Module):
         self.output_size = output_size
         # initialize n_sup_prototypes super prototypes, they are of size latent_size
         self.sup_prototypes = nn.Parameter(torch.nn.init.uniform_(torch.zeros(n_sup_prototypes, latent_size)))
-        #self.sub_prototypes, self.linear_layers = self._createSubprototypes(output_size, n_prototypes, n_sub_prototypes, latent_size)
         self.sub_prototypes = nn.Parameter(torch.nn.init.uniform_(torch.zeros(n_sub_prototypes, latent_size)))
-        #self.sub_prototypes = nn.Parameter(torch.zeros(n_sub_prototypes, latent_size)).to(device)
 
         # Linear layers for super prototypes and sub prototypes
         if n_sup_prototypes == output_size:
@@ -38,30 +36,6 @@ class HierarchyPrototypeClassifier(nn.Module):
 
         self.linear2 = nn.Linear(n_sub_prototypes, output_size)
 
-
-    def _createSubprototypes(self, output_size, n_prototypes, n_sub_prototypes, latent_size):
-            sub_prototypes = np.empty(n_prototypes, dtype=object)
-            linear_layers = np.empty(n_prototypes, dtype = object )
-            for subset in range(n_prototypes):
-                sub_prototypes[subset] = nn.Parameter(torch.nn.init.uniform_(torch.zeros(n_sub_prototypes, latent_size))).to(device)
-                linear_layers[subset] = nn.Linear(n_sub_prototypes, output_size).to(device)
-
-            return sub_prototypes, linear_layers
-
-    def _compute_linear(self, input, index):
-        input = input.to(device)
-        x = list_of_distances(input, self.sub_prototypes[index])
-
-        out = self.linear_layers[index].forward(x)
-
-        # regularization r1: Be close to at least one training example 
-        # (get min distance to each datapoint=dimension 0)
-        sub_min1 = torch.mean(torch.min(x, axis=0).values)
-        # regularization r2: Be close to at least one prototype 
-        # (get min distance to each prototype=dimension 1)
-        sub_min2 = torch.mean(torch.min(x, axis=1).values)
-
-        return out, sub_min1, sub_min2
 
     def forward(self, input):
         """

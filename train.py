@@ -10,87 +10,39 @@ from torch.nn.functional import one_hot
 from torchvision.utils import save_image
 from preprocessing import batch_elastic_transform
 from model import PrototypeModel, HierarchyModel
+from helper import check_path
 
 # Global parameters for device and reproducibility
 parser = argparse.ArgumentParser()
 parser.add_argument('--seed', type=int, default=42,
                         help='seed for reproduction')
+parser.add_argument('--dir', type=str, default='anna',
+                        help='main directory to save intermediate results')
+parser.add_argument("--hier", type=bool, nargs='?',const=True, default=False, help='Hierarchical turned on')                
 args = parser.parse_args()
 torch.manual_seed(args.seed)
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-model_path = 'models/'
-prototype_path = 'negidentity/prototypes/'
-decoding_path = 'negidentity/decoding/'
+check_path(args.dir)
 
-# Training details
-#learning_rate = 0.0001
-#training_epoch = 1500
-#batch_size = 250
-#save_every = 50
+model_path = args.dir + '/models/'
+prototype_path = args.dir + '/prototypes/'
+decoding_path = args.dir + '/decoding/'
+results_path = args.dir +'/results/'
 
-# Warping parameters
-#sigma = 4
-#alpha = 20
-
-# Model details 
-#hierarchical = False
-#n_prototypes = 15
-#n_sub_prototypes = 3
-#latent_size = 40
-#n_classes = 10
+check_path(model_path)
+check_path(prototype_path)
+check_path(decoding_path)
+check_path(results_path)
 
 # Loss weights for cross entropy, reconstruction loss and the two extra terms as described in the paper
-lambda_class_sup = 20 #CE for supers
-lambda_class_sub = 20 #CE for subs
+lambda_class_sup = 20 # CE for supers
+lambda_class_sub = 20 # CE for subs
 lambda_ae = 1
 lambda_1 = 1
 lambda_2 = 1
 lambda_3 = 1
 lambda_4 = 1
-
-def run_epoch_n(sigma, alpha, model, dataloader, optimizer,
-        iteration,epoch_loss, epoch_accuracy):
-    
-    for i, (images, labels) in enumerate(dataloader):
-        # Up the iteration by 1
-        iteration += 1
-
-        # Transform images, then port to GPU
-        images = batch_elastic_transform(images, sigma, alpha, 28, 28)
-        images = images.to(device)
-        labels = labels.to(device)
-        oh_labels = one_hot(labels)
-
-        # Forward pass
-        _, decoding, (r1, r2, c) = model.forward(images)
-
-        # Calculate loss: Crossentropy + Reconstruction + R1 + R2 
-        # Crossentropy h(f(x)) and y
-        ce = nn.CrossEntropyLoss()
-        # reconstruction error g(f(x)) and x
-        subtr = (decoding - images).view(-1, 28*28)
-        re = torch.mean(torch.norm(subtr, dim=1))
-        
-        # Paper does 20 * ce and lambda_n = 1 for each regularization term
-        # Calculate loss and get accuracy etc.
-
-        crossentropy_loss = ce(c, torch.argmax(oh_labels, dim=1))
-        loss = lambda_class * crossentropy_loss + lambda_ae * re + lambda_1 * r2 + lambda_2 * re
-        
-        epoch_loss += loss.item()
-        preds = torch.argmax(c,dim=1)
-        corr = torch.sum(torch.eq(preds,labels))
-        size = labels.shape[0]
-        epoch_accuracy += corr.item()/size
-
-        # Do backward pass and ADAM steps
-        loss.backward()
-        optimizer.step()
-        optimizer.zero_grad()
-
-
-    return iteration, epoch_loss, epoch_accuracy, decoding
 
 def run_epoch(hierarchical, sigma, alpha,                     # Model parameters
         model, dataloader, optimizer,                         # Training objects
@@ -167,17 +119,10 @@ def run_epoch(hierarchical, sigma, alpha,                     # Model parameters
         optimizer.step()
         optimizer.zero_grad()
 
-
     return iteration, epoch_loss, epoch_accuracy, sub_accuracy, decoding
 
 def save_images(prototype_path, decoding_path, prototypes, subprototypes, decoding, epoch):
-    if not os.path.exists(prototype_path):
-        os.makedirs(prototype_path)
-    if not os.path.exists(decoding_path):
-        os.makedirs(decoding_path)
-   
-    save_image(prototypes, prototype_path+'seed{}prot{}.png'.format(args.seed, epoch), nrow=5, normalize=True)
-    save_image(decoding, decoding_path+'seed{}dec{}.png'.format(args.seed, epoch), nrow=5, normalize=True)
+    save_image(prototypes, prototype_path+'prot{}.png'.format(epoch), nrow=5, normalize=True)
     if subprototypes is not None: 
         save_image(subprototypes, prototype_path+'subprot{}.png'.format(epoch), nrow=5, normalize=True )
 
@@ -186,8 +131,9 @@ def train_MNIST(hierarchical=False, n_prototypes=10, n_sub_prototypes = 30,
                 learning_rate=0.001, training_epochs=1500, 
                 batch_size=250, save_every=1, sigma=4, alpha=20):
     # Prepare file
-    f = open("results_s" + str(args.seed ) + ".txt", "w")
-    f.write(', '.join([str(x) for x in [hierarchical, n_prototypes, latent_size, learning_rate]]))
+    f = open(results_path + "results_s" + str(args.seed ) + ".txt", "w")
+    f.write(', '.join([str(x) for x in [hierarchical, n_prototypes, n_sub_prototypes, 
+                    latent_size, learning_rate]]))
     f.write('\n')
     f.close()
 
@@ -216,8 +162,8 @@ def train_MNIST(hierarchical=False, n_prototypes=10, n_sub_prototypes = 30,
         sub_acc   = 0.0
         it = 0
 
-        it, epoch_loss, epoch_acc, sub_acc, dec = run_epoch(hierarchical, sigma, alpha, proto, dataloader, optim, it, epoch_loss, epoch_acc, sub_acc)
-        #it, epoch_loss, epoch_acc, dec = run_epoch_n(sigma, alpha, proto, dataloader, optim, it, epoch_loss, epoch_acc)
+        it, epoch_loss, epoch_acc, sub_acc, dec = run_epoch(hierarchical, sigma, alpha, proto, dataloader, 
+                                                optim, it, epoch_loss, epoch_acc, sub_acc)
 
         # To save time
         if epoch % save_every == 0:
@@ -315,11 +261,14 @@ def train_MNIST(hierarchical=False, n_prototypes=10, n_sub_prototypes = 30,
             size = labels.shape[0]
             test_accuracy += corr.item()/size
 
-    with open("results_s" + str(args.seed ) + ".txt", "a") as f:
+    with open(results_path + "results_s" + str(args.seed ) + ".txt", "a") as f:
         text = "Testdata loss: " +  str(test_loss/it) + " acc: " + str(test_accuracy/it)
         print(text)
         f.write(text)
         f.write('\n')
     
 
-train_MNIST(hierarchical=True, batch_size=250)
+if (args.hier):
+    train_MNIST(hierarchical=True, n_sub_prototypes=20)
+else:
+    train_MNIST()

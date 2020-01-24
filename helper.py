@@ -1,8 +1,13 @@
 import torch
+import os
 """
 Code by Oscar Li
 github.com/OscarcarLi/PrototypeDL
 """
+
+def check_path(path):
+    if not os.path.exists(path):
+        os.makedirs(path)
 
 def list_of_distances(X, Y):
     '''

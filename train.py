@@ -271,4 +271,4 @@ def train_MNIST(hierarchical=False, n_prototypes=10, n_sub_prototypes = 30,
 if (args.hier):
     train_MNIST(hierarchical=True, n_sub_prototypes=20)
 else:
-    train_MNIST()
+    train_MNIST(n_prototypes=15)

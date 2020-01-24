@@ -128,7 +128,7 @@ def save_images(prototype_path, decoding_path, prototypes, subprototypes, decodi
 
 def train_MNIST(hierarchical=False, n_prototypes=10, n_sub_prototypes = 30, 
                 latent_size=40, n_classes=10,
-                learning_rate=0.001, training_epochs=1500, 
+                learning_rate=0.0001, training_epochs=1500, 
                 batch_size=250, save_every=1, sigma=4, alpha=20):
     # Prepare file
     f = open(results_path + "results_s" + str(args.seed ) + ".txt", "w")

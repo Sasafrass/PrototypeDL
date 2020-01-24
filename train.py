@@ -189,7 +189,7 @@ def train_MNIST(hierarchical=False, n_prototypes=10, n_sub_prototypes = 30,
             torch.save(proto, model_path+"proto{}.pth".format(args.seed))
 
         # Print statement to check on progress
-        with open("results_s" + str(args.seed ) + ".txt", "a") as f:
+        with open(results_path + "results_s" + str(args.seed ) + ".txt", "a") as f:
             text = "Epoch: " + str(epoch) + " loss: " + str(epoch_loss / it) + " acc: " + str(epoch_acc/it) + " sub_acc: " + str(sub_acc/it)
             print(text)
             f.write(text)

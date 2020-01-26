@@ -2,11 +2,10 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import numpy as np
-
-from network.modules import *
-from network.prototype import *
-from network.hierarchyPrototype import *
+import torch.nn as nn
+from network.modules import ConvDecoder, ConvEncoder
+from network.prototype import PrototypeClassifier
+from network.hierarchyPrototype import HierarchyPrototypeClassifier
 
 class PrototypeModel(nn.Module):
     def __init__(self, n_prototypes, latent_size, n_classes):

@@ -6,5 +6,5 @@ module load pre2019
 module load Miniconda3/4.3.27
 source activate prototype2
 
-python train.py --dir "normal1" 
+python train.py --dir "nonhier30boystotal" 
 

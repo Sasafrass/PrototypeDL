@@ -13,13 +13,31 @@ from helper import check_path
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-
 def run_epoch( evaluation,
-        hierarchical, sigma, alpha,                     # Model parameters
+        hierarchical, sigma, alpha,                           # Model parameters
         model, dataloader, optimizer,                         # Training objects
-        iteration, epoch_loss, epoch_accuracy, sub_accuracy,
-        lambda_class, lambda_class_sup, lambda_class_sub, lambda_ae, 
-        lambda_1, lambda_2, lambda_3, lambda_4                ): # Evaluation 
+        iteration, epoch_loss, epoch_accuracy, sub_accuracy,  # Intermediate results
+        lambda_class, lambda_class_sup, lambda_class_sub, lambda_ae,  # Lambdas
+        lambda_1, lambda_2, lambda_3, lambda_4): 
+    """
+    Runs through the entire dataset once, updates model only if evaluation=False
+    Args:
+        Input: 
+            evaluation : Boolean, if set to true, the model will not be updated
+                         and the data will not be warped before the forward pass
+            hierarchical : Boolean, is the model hierarchical or not?
+            sigma, alpha : Parameters for image warping during training 
+            model : A PrototypeModel or HierarchyModel
+            dataloader : A dataloader object, this function will go through all data
+            optimizer : Optimizer object
+            iteration, epoch_loss, epoch_accuracy, sub_accuracy : intermediate results 
+            lambda : all lambda's for calculating the loss function
+        Output: 
+            The output consists of 4 scalars, representing:
+            iteration : amount of data points seen
+            epoch_loss, epoch_accuracy : accuracy over this epoch
+            sub_accuracy : equal to 0 is hierarchical=False
+    """
 
     for i, (images, labels) in enumerate(dataloader):
         # Up the iteration by 1
@@ -96,7 +114,10 @@ def run_epoch( evaluation,
 
     return iteration, epoch_loss, epoch_accuracy, sub_accuracy
 
-def save_images(prototype_path,  prototypes, subprototypes,  epoch):
+def save_images(prototype_path, prototypes, subprototypes, epoch):
+    """
+    Saves decoded prototypes and decoded subprototypes to the specified folders
+    """
     save_image(prototypes, prototype_path+'prot{}.png'.format(epoch), nrow=5, normalize=True)
     if subprototypes is not None: 
         save_image(subprototypes, prototype_path+'subprot{}.png'.format(epoch), nrow=5, normalize=True )
@@ -107,6 +128,9 @@ def test_MNIST(test_data, hierarchical, lambda_class, lambda_class_sup, lambda_c
         model = torch.load(model_path, map_location=torch.device(device))
 
     model.eval()
+    print(model.prototype.linear1.weight)
+    print(model.prototype.linear2)
+    return
     test_dataloader = DataLoader(test_data, batch_size=250)
 
     test_loss = 0.0
@@ -218,7 +242,7 @@ def train_MNIST(hierarchical=False, n_prototypes=15, n_sub_prototypes = 30,
     
     # Test data
     test_MNIST(test_data, hierarchical, lambda_class, lambda_class_sup,
-        lambda_class_sub, lamda_ae, lambda_1, lambda_2, lambda_3, lambda_4, model=proto )
+        lambda_class_sub, lambda_ae, lambda_1, lambda_2, lambda_3, lambda_4, model=proto )
     
 def load_and_test(path, hierarchical):
     test_data = MNIST('./data', train=False, download=True, transform=transforms.Compose([
@@ -227,5 +251,5 @@ def load_and_test(path, hierarchical):
     test_MNIST(test_data, hierarchical, 20, 20, 20, 1,1 ,1,1,1, model_path = path)
 
 
-load_and_test('normal1/models/final.pth', False )
+#load_and_test('normal1/models/final.pth', False )
 load_and_test('hierarchical1/models/final.pth', True)

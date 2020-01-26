@@ -1,7 +1,7 @@
 import torch
 import os
 """
-Code by Oscar Li
+Code of function list_of_distances by Oscar Li
 github.com/OscarcarLi/PrototypeDL
 """
 
@@ -32,9 +32,3 @@ def list_of_norms(X):
     function is the squared euclidean distance.
     '''
     return (torch.pow(X, 2)).sum(axis=1)
-
-"""h = list_of_distances(
-    torch.tensor([[1,1,1],[5,4,4],[1,2,3]]), 
-    torch.tensor([[4,4,4],[3,3,3],[2,2,2],[1,1,1]]))
-print(h)"""
-

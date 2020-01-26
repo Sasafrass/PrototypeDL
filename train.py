@@ -13,12 +13,20 @@ from helper import check_path
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
+default_lambda_dict = { 'lambda_class' : 20, 
+                    'lambda_class_sup' : 20,
+                    'lambda_class_sub' : 20,
+                    'lambda_ae' : 1,
+                    'lambda_r1' : 1,
+                    'lambda_r2' : 1,
+                    'lambda_r3' : 1,
+                    'lambda_r4' : 1}
+
 def run_epoch( evaluation,
         hierarchical, sigma, alpha,                           # Model parameters
         model, dataloader, optimizer,                         # Training objects
         iteration, epoch_loss, epoch_accuracy, sub_accuracy,  # Intermediate results
-        lambda_class, lambda_class_sup, lambda_class_sub, lambda_ae,  # Lambdas
-        lambda_1, lambda_2, lambda_3, lambda_4): 
+        lambda_dict): 
     """
     Runs through the entire dataset once, updates model only if evaluation=False
     Args:
@@ -72,19 +80,19 @@ def run_epoch( evaluation,
             sub_ce = ce(sub_c, torch.argmax(oh_labels, dim=1))
 
             # Actual loss
-            loss = lambda_class_sup * sup_ce + \
-                lambda_ae * re + \
-                lambda_class_sub * sub_ce + \
-                lambda_1 * r1 + \
-                lambda_2 * r2 + \
-                lambda_3 * r3 + \
-                lambda_4 * r4
+            loss = lambda_dict['lambda_class_sup'] * sup_ce + \
+                lambda_dict['lambda_ae'] * re + \
+                lambda_dict['lambda_class_sub'] * sub_ce + \
+                lambda_dict['lambda_r1'] * r1 + \
+                lambda_dict['lambda_r2'] * r2 + \
+                lambda_dict['lambda_r3'] * r3 + \
+                lambda_dict['lambda_r4'] * r4
         else:
             crossentropy_loss = ce(c, torch.argmax(oh_labels, dim=1))
-            loss = lambda_class * crossentropy_loss + \
-            lambda_ae * re + \
-            lambda_1 * r1 +  \
-            lambda_2 * r2
+            loss = lambda_dict['lambda_class'] * crossentropy_loss + \
+            lambda_dict['lambda_ae'] * re + \
+            lambda_dict['lambda_r1'] * r1 +  \
+            lambda_dict['lambda_r2'] * r2
 
         if(hierarchical):
             # For super prototype cross entropy term
@@ -122,40 +130,36 @@ def save_images(prototype_path, prototypes, subprototypes, epoch):
     if subprototypes is not None: 
         save_image(subprototypes, prototype_path+'subprot{}.png'.format(epoch), nrow=5, normalize=True )
 
-def test_MNIST(test_data, hierarchical, lambda_class, lambda_class_sup, lambda_class_sub, lambda_ae, 
-        lambda_1, lambda_2, lambda_3, lambda_4, model=None , model_path = None):
+def test_MNIST(test_data, hierarchical, lambda_dict, results_path, model=None , model_path = None):
     if model_path is not None:
         model = torch.load(model_path, map_location=torch.device(device))
 
     model.eval()
-    print(model.prototype.linear1.weight)
-    print(model.prototype.linear2)
-    return
     test_dataloader = DataLoader(test_data, batch_size=250)
 
     test_loss = 0.0
     test_acc = 0.0
-    testsub_acc   = 0.0
+    testsub_acc = 0.0
     it = 0
 
     it, test_loss, test_acc, testsub_acc = run_epoch(True, hierarchical, None, None, model, test_dataloader, 
-                                            None, it, test_loss, test_acc, testsub_acc,
-                                            lambda_class, lambda_class_sup, lambda_class_sub, 
-                                            lambda_ae, lambda_1, lambda_2, lambda_3, lambda_4)
+                                            None, it, test_loss, test_acc, testsub_acc, lambda_dict)
 
-
-    #with open(results_path + "results_s" + str(seed ) + ".txt", "a") as f:
     text = "Testdata loss: " +  str(test_loss/it) + " acc: " + str(test_acc/it) + " sub acc: " + str(testsub_acc/it)
     print(text)
-    #    f.write(text)
-    #    f.write('\n')
+    with open(results_path + "results_test.txt", 'w' ) as f:    
+        f.write(text)
+        f.write('\n')
+    return test_loss/it, test_acc/it, testsub_acc/it
 
-def train_MNIST(hierarchical=False, n_prototypes=15, n_sub_prototypes = 30, 
-                latent_size=40, n_classes=10, lambda_class = 20, lambda_class_sup =20, 
-                lambda_class_sub=20, lambda_ae = 1, lambda_1 = 1, lambda_2 = 1, 
-                lambda_3 = 1, lambda_4 = 1, 
+def train_MNIST(hierarchical=False, n_prototypes=15, n_sub_prototypes = 20, 
+                latent_size=40, n_classes=10, lambda_dict = default_lambda_dict, 
                 learning_rate=0.0001, training_epochs=1500, 
                 batch_size=250, save_every=1, sigma=4, alpha=20, seed = 42, directory = "my_model"):
+    # Default settings for hierarchical model
+    if hierarchical:
+        n_prototypes = 10
+
     # Set torch seed
     torch.manual_seed(seed)
 
@@ -205,9 +209,7 @@ def train_MNIST(hierarchical=False, n_prototypes=15, n_sub_prototypes = 30,
         it = 0
 
         it, epoch_loss, epoch_acc, sub_acc = run_epoch(False, hierarchical, sigma, alpha, proto, dataloader, 
-                                                optim, it, epoch_loss, epoch_acc, sub_acc,
-                                                lambda_class, lambda_class_sup, lambda_class_sub, 
-                                                lambda_ae, lambda_1, lambda_2, lambda_3, lambda_4)
+                                                optim, it, epoch_loss, epoch_acc, sub_acc, lambda_dict)
 
         # To save time
         if epoch % save_every == 0:
@@ -241,15 +243,11 @@ def train_MNIST(hierarchical=False, n_prototypes=15, n_sub_prototypes = 30,
     torch.save(proto, model_path+"final.pth")
     
     # Test data
-    test_MNIST(test_data, hierarchical, lambda_class, lambda_class_sup,
-        lambda_class_sub, lambda_ae, lambda_1, lambda_2, lambda_3, lambda_4, model=proto )
+    t_loss, t_acc, t_sub = test_MNIST(test_data, hierarchical, lambda_dict, results_path, model=proto)
+    return t_loss, t_acc, t_sub
     
 def load_and_test(path, hierarchical):
     test_data = MNIST('./data', train=False, download=True, transform=transforms.Compose([
                                                 transforms.ToTensor(),
                                             ]))
-    test_MNIST(test_data, hierarchical, 20, 20, 20, 1,1 ,1,1,1, model_path = path)
-
-
-#load_and_test('normal1/models/final.pth', False )
-load_and_test('hierarchical1/models/final.pth', True)
+    test_MNIST(test_data, hierarchical, default_lambda_dict, '', model_path = path)

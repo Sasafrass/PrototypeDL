@@ -1,8 +1,13 @@
 import torch
+import os
 """
-Code by Oscar Li
+Code of function list_of_distances by Oscar Li
 github.com/OscarcarLi/PrototypeDL
 """
+
+def check_path(path):
+    if not os.path.exists(path):
+        os.makedirs(path)
 
 def list_of_distances(X, Y):
     '''
@@ -27,9 +32,3 @@ def list_of_norms(X):
     function is the squared euclidean distance.
     '''
     return (torch.pow(X, 2)).sum(axis=1)
-
-"""h = list_of_distances(
-    torch.tensor([[1,1,1],[5,4,4],[1,2,3]]), 
-    torch.tensor([[4,4,4],[3,3,3],[2,2,2],[1,1,1]]))
-print(h)"""
-

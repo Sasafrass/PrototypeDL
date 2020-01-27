@@ -32,3 +32,6 @@ def list_of_norms(X):
     function is the squared euclidean distance.
     '''
     return (torch.pow(X, 2)).sum(axis=1)
+
+
+

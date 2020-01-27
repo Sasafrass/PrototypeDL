@@ -3,7 +3,7 @@ import os
 import torch 
 import torch.nn as nn
 from torchvision.datasets import MNIST
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, WeightedRandomSampler
 import torchvision.transforms as transforms
 from torch.nn.functional import one_hot
 from torchvision.utils import save_image
@@ -199,8 +199,12 @@ def train_MNIST(hierarchical=False, n_prototypes=15, n_sub_prototypes = 20,
 
     proto = proto.to(device)
     optim = torch.optim.Adam(proto.parameters(), lr=learning_rate)
-    dataloader = DataLoader(train_data, batch_size=batch_size)
 
+    labels = [label for _, label in train_data]
+    train_samples_weight = [0.25 if class_id == 1 else 1 for class_id in labels]
+    dataloader = DataLoader(train_data, batch_size=batch_size, sampler=
+            WeightedRandomSampler(weights=train_samples_weight, num_samples=len(labels), replacement=False))
+    print("Got dataloader loaded")
     # Run for a number of epochs
     for epoch in range(training_epochs):
         epoch_loss = 0.0
@@ -251,3 +255,13 @@ def load_and_test(path, hierarchical):
                                                 transforms.ToTensor(),
                                             ]))
     test_MNIST(test_data, hierarchical, default_lambda_dict, '', model_path = path)
+
+#load_and_test('hierarchical30boys/models/final.pth', True)
+#load_and_test('normal2/models/final.pth', False)
+train_data = MNIST('./data', train=True, download=True, transform=transforms.Compose([
+                                                transforms.ToTensor(),
+                                            ]))
+#print(train_data)                                    
+#dataloader = DataLoader(train_data, batch_size=batch_size, sampler=WeightedRandomSampler(
+#        weights=replacement=False
+#))

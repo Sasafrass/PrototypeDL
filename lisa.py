@@ -14,4 +14,4 @@ args = parser.parse_args()
 if (args.hier):
     train_MNIST(hierarchical=True, n_sub_prototypes=20, directory=args.dir, seed = args.seed)
 else:
-    train_MNIST(n_prototypes=30, directory=args.dir, seed = args.seed)
+    train_MNIST(n_prototypes=15, directory=args.dir, seed = args.seed)

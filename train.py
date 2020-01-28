@@ -155,7 +155,30 @@ def test_MNIST(test_data, hierarchical, lambda_dict, results_path, model=None , 
 def train_MNIST(hierarchical=False, n_prototypes=15, n_sub_prototypes = 20, 
                 latent_size=40, n_classes=10, lambda_dict = default_lambda_dict, 
                 learning_rate=0.0001, training_epochs=1500, 
-                batch_size=250, save_every=1, sigma=4, alpha=20, seed = 42, directory = "my_model"):
+                batch_size=250, save_every=1, sigma=4, alpha=20, seed = 42, directory = "my_model",
+                underrepresented_class = -1):
+    """
+    Initializes a new model and trains it on MNIST traindata, then tests it on testdata.
+    Args:
+        Input:
+          Model parameters
+            hierarchical : Boolean: Is the model hierarchical?
+            n_prototypes : The amount of prototypes. When hierarchical is set to true, this is the amount of superprototypes.
+            n_sub_prototypes : The amount of subprototypes. Will be ignored if hierarchical is set to false.
+            latent_size : Size of the latent space
+            n_classes : Amount of classes 
+            lambda_dict : Dictionary containing all necessary lambda's for the weighted loss equation
+          Training parameters
+            learning_rate : 
+            training_epochs : 
+            batch_size : 
+            save_every : how often to save images and models?
+          Miscellaneous
+            sigma, alpha : Parameters for elastic deformation. Only used for train data
+            directory : Directory to save results, prototype images and final model.
+            underrepresented model : The class that is to be downsampled (0.25 to 1 for all other classes)
+                        When it is set to -1, no class is downsampled.
+    """
     # Default settings for hierarchical model
     if hierarchical:
         n_prototypes = 10
@@ -183,7 +206,7 @@ def train_MNIST(hierarchical=False, n_prototypes=15, n_sub_prototypes = 20,
     f.write('\n')
     f.close()
 
-    # Load data
+    ### Load data
     train_data = MNIST('./data', train=True, download=True, transform=transforms.Compose([
                                                 transforms.ToTensor(),
                                             ]))
@@ -200,12 +223,17 @@ def train_MNIST(hierarchical=False, n_prototypes=15, n_sub_prototypes = 20,
     proto = proto.to(device)
     optim = torch.optim.Adam(proto.parameters(), lr=learning_rate)
 
-    labels = [label for _, label in train_data]
-    train_samples_weight = [0.25 if class_id == 1 else 1 for class_id in labels]
-    dataloader = DataLoader(train_data, batch_size=batch_size, sampler=
+    ### Initialize the dataloader 
+    if underrepresented_class > -1:
+        labels = [label for _, label in train_data]
+        train_samples_weight = [0.25 if class_id == underrepresented_class else 1 for class_id in labels]
+        dataloader = DataLoader(train_data, batch_size=batch_size, sampler=
             WeightedRandomSampler(weights=train_samples_weight, num_samples=len(labels), replacement=False))
-    print("Got dataloader loaded")
-    # Run for a number of epochs
+        print("Got dataloader loaded with WeightedRandomSampler")
+    else : 
+        dataloader = DataLoader(train_data, batch_size=batch_size)
+
+    ### Run for a specified number of epochs
     for epoch in range(training_epochs):
         epoch_loss = 0.0
         epoch_acc = 0.0
@@ -244,9 +272,11 @@ def train_MNIST(hierarchical=False, n_prototypes=15, n_sub_prototypes = 20,
             print(text)
             f.write(text)
             f.write('\n')
+
+    ### Save final model, no matter what 
     torch.save(proto, model_path+"final.pth")
     
-    # Test data
+    ### Test model on testdata
     t_loss, t_acc, t_sub = test_MNIST(test_data, hierarchical, lambda_dict, results_path, model=proto)
     return t_loss, t_acc, t_sub
     
@@ -255,13 +285,3 @@ def load_and_test(path, hierarchical):
                                                 transforms.ToTensor(),
                                             ]))
     test_MNIST(test_data, hierarchical, default_lambda_dict, '', model_path = path)
-
-#load_and_test('hierarchical30boys/models/final.pth', True)
-#load_and_test('normal2/models/final.pth', False)
-train_data = MNIST('./data', train=True, download=True, transform=transforms.Compose([
-                                                transforms.ToTensor(),
-                                            ]))
-#print(train_data)                                    
-#dataloader = DataLoader(train_data, batch_size=batch_size, sampler=WeightedRandomSampler(
-#        weights=replacement=False
-#))

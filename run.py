@@ -1,5 +1,5 @@
 import argparse
-from train import train_MNIST, load_and_test
+from src.train import train_MNIST, load_and_test
 
 # Global parameters for device and reproducibility
 parser = argparse.ArgumentParser()

@@ -227,7 +227,7 @@ def train_MNIST(hierarchical=False, n_prototypes=15, n_sub_prototypes = 20,
     ### Initialize the dataloader 
     if underrepresented_class > -1:
         labels = [label for _, label in train_data]
-        train_samples_weight = [0.25 if class_id == underrepresented_class else 1 for class_id in labels]
+        train_samples_weight = torch.tensor([0.25 if class_id == underrepresented_class else 1 for class_id in labels]).double()
         dataloader = DataLoader(train_data, batch_size=batch_size, sampler=
             WeightedRandomSampler(weights=train_samples_weight, num_samples=len(labels)))
         print("Got dataloader loaded with WeightedRandomSampler")
@@ -287,4 +287,4 @@ def load_and_test(path, hierarchical):
                                             ]))
     test_MNIST(test_data, hierarchical, default_lambda_dict, '', model_path = path)
 
-load_and_test('normal1/models/final.pth', False)
+#load_and_test('normal1/models/final.pth', False)

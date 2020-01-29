@@ -134,6 +134,7 @@ def test_MNIST(test_data, hierarchical, lambda_dict, results_path, model=None , 
     if model_path is not None:
         model = torch.load(model_path, map_location=torch.device(device))
 
+
     model.eval()
     test_dataloader = DataLoader(test_data, batch_size=250)
 
@@ -285,3 +286,5 @@ def load_and_test(path, hierarchical):
                                                 transforms.ToTensor(),
                                             ]))
     test_MNIST(test_data, hierarchical, default_lambda_dict, '', model_path = path)
+
+load_and_test('normal1/models/final.pth', False)

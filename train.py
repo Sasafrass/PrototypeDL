@@ -229,7 +229,7 @@ def train_MNIST(hierarchical=False, n_prototypes=15, n_sub_prototypes = 20,
         labels = [label for _, label in train_data]
         train_samples_weight = [0.25 if class_id == underrepresented_class else 1 for class_id in labels]
         dataloader = DataLoader(train_data, batch_size=batch_size, sampler=
-            WeightedRandomSampler(weights=train_samples_weight, num_samples=len(labels), replacement=False))
+            WeightedRandomSampler(weights=train_samples_weight, num_samples=len(labels)))
         print("Got dataloader loaded with WeightedRandomSampler")
     else : 
         dataloader = DataLoader(train_data, batch_size=batch_size)

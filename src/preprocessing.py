@@ -11,11 +11,11 @@ def batch_elastic_transform(images, sigma, alpha, height, width, random_state=No
     """
     this code is borrowed from chsasank on GitHubGist
     Elastic deformation of images as described in [Simard 2003].
-    
+
     images: a two-dimensional numpy array; we can think of it as a list of flattened images
     sigma: the real-valued variance of the gaussian kernel
     alpha: a real-value that is multiplied onto the displacement fields
-    
+
     returns: an elastically distorted image of the same shape
     """
     images = images.squeeze(1)
@@ -25,15 +25,15 @@ def batch_elastic_transform(images, sigma, alpha, height, width, random_state=No
     # the two lines below ensure we do not alter the array images
     e_images = torch.zeros(images.shape)
     e_images[:] = images
-    
+
     e_images = e_images.reshape(-1, height, width)
-    
+
     if random_state is None:
         random_state = np.random.RandomState(None)
     x, y = np.mgrid[0:height, 0:width]
-    
+
     for i in range(e_images.shape[0]):
-        
+
         dx = gaussian_filter(
             (random_state.rand(height, width) * 2 - 1), sigma, mode='constant') * alpha
         dy = gaussian_filter(

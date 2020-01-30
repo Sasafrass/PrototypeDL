@@ -8,9 +8,9 @@ from __future__ import division
 from __future__ import print_function
 
 import torch.nn as nn
-from network.modules import ConvDecoder, ConvEncoder
-from network.prototype import PrototypeClassifier
-from network.hierarchy_prototype import HierarchyPrototypeClassifier
+from src.network.modules import ConvDecoder, ConvEncoder
+from src.network.prototype import PrototypeClassifier
+from src.network.hierarchyPrototype import HierarchyPrototypeClassifier
 
 class PrototypeModel(nn.Module):
     """
@@ -35,8 +35,8 @@ class PrototypeModel(nn.Module):
                 decoded : decoded batch of data of appropriate input size
                 prototype : tuple of (distances, logits). See PrototypeClassifier
         """
-        encoded   = self.encoder.forward(x)         # f(x)
-        decoded   = self.decoder.forward(encoded)   # g(f(x))
+        encoded = self.encoder.forward(x)         # f(x)
+        decoded = self.decoder.forward(encoded)   # g(f(x))
         prototype = self.prototype.forward(encoded) # h(f(x))
 
         return encoded, decoded, prototype
@@ -51,8 +51,11 @@ class HierarchyModel(nn.Module):
 
         self.encoder = ConvEncoder(latent_size)
         self.decoder = ConvDecoder(latent_size)
-        self.prototype = HierarchyPrototypeClassifier(n_prototypes, 
-                                    latent_size, n_classes, n_sub_prototypes)
+        self.prototype = HierarchyPrototypeClassifier(
+            n_prototypes,
+            latent_size,
+            n_classes,
+            n_sub_prototypes)
 
     def forward(self, x):
         """

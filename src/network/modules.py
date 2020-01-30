@@ -17,8 +17,8 @@ class ConvEncoder(nn.Module):
         super().__init__()
 
         # Apparently padding=1 was necessary to get the same dimensions as listed in the paper.
-        # There should be a way to do this automatically, which is what tensorflow probably does 
-        # Although in the paper "zero padding" is used, which is kinda ambiguous in itself 
+        # There should be a way to do this automatically, which is what tensorflow probably does
+        # Although in the paper "zero padding" is used, which is kinda ambiguous in itself
         self.convnet = nn.Sequential(
             nn.Conv2d(1, 32, kernel_size=3, stride=2, padding=1),
             nn.Sigmoid(),
@@ -46,7 +46,7 @@ class ConvEncoder(nn.Module):
 class ConvDecoder(nn.Module):
     """
     Decoder with four convolutional layers.
-    Decodes latent_size inputs to 28*28*1 images. 
+    Decodes latent_size inputs to 28*28*1 images.
     """
     def __init__(self, latent_size):
         super().__init__()
@@ -57,25 +57,23 @@ class ConvDecoder(nn.Module):
         self.de4 = nn.ConvTranspose2d(32, 1, kernel_size=3, stride=2, padding=1)
         self.sigmoid = nn.Sigmoid()
 
-
     def forward(self, data_in):
         """
         Perform forward pass of the CNN decoder
         Args:
-            Input: 
+            Input:
                 data_in : Encoded data of shape (batch_size * 10 * 2 * 2)
-        
             Output:
                 out : Decoded data of shape (batch_size * 1 * 28 * 28)
         """
         # Output_size is necessary during convolution
-        b = len(data_in)
-        out = self.de1(data_in, output_size=(b, 32, 4, 4))
+        data_length = len(data_in)
+        out = self.de1(data_in, output_size=(data_length, 32, 4, 4))
         out = self.sigmoid(out)
-        out = self.de2(out, output_size=(b, 32, 7, 7))
+        out = self.de2(out, output_size=(data_length, 32, 7, 7))
         out = self.sigmoid(out)
-        out = self.de3(out, output_size=(b, 32, 14, 14))
+        out = self.de3(out, output_size=(data_length, 32, 14, 14))
         out = self.sigmoid(out)
-        out = self.de4(out, output_size=(b, 1, 28, 28))
+        out = self.de4(out, output_size=(data_length, 1, 28, 28))
         out = self.sigmoid(out)
         return out

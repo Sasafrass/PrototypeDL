@@ -347,7 +347,7 @@ def load_and_test(path, hierarchical):
     Input: path to a model and if the model is hierarchical
     loads and tests the model for accuracy and loss
     """
-    test_data = MNIST('../data', train=False, download=True, transform=transforms.Compose([
+    test_data = MNIST('./data', train=False, download=True, transform=transforms.Compose([
         transforms.ToTensor(),
     ]))
     test_MNIST(test_data, hierarchical, DEFAULT_LAMBDA_DICT, '', model_path=path)

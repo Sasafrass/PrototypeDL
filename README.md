@@ -5,7 +5,7 @@ Private Github repository for the course Fairness, Accountability, Confidentiali
 Albert Harkema () (albert.harkema@student.uva.nl)
 Anna Langedijk (12297402) (annalangedijk@gmail.com)
 Christiaan van der Vlist () (christiaan.vandervlist@student.uva.nl)
-Hinrik Snær () (hinriksnaer@gmail.com)
+Hinrik Snær (12675326) (hinriksnaer@gmail.com)
 
 ## Based on
 Our implementation is based on the tensorflow code in https://github.com/OscarcarLi/PrototypeDL.

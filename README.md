@@ -1,13 +1,20 @@
-# FACT-AI
-Private Github repository for the course Fairness, Accountability, Confidentiality and Transparency in AI at the University of Amsterdam. By Albert Harkema, Anna Langedijk, Christiaan van der Vlist, and Hinrik Snær
+# FACT-AI: Towards Hierarchical Explanation
+Private Github repository for the course Fairness, Accountability, Confidentiality and Transparency in AI at the University of Amsterdam. 
 
-# Based on
-https://github.com/OscarcarLi/PrototypeDL
+## Authors
+Albert Harkema () (albert.harkema@student.uva.nl)
+Anna Langedijk (12297402) (annalangedijk@gmail.com)
+Christiaan van der Vlist () (christiaan.vandervlist@student.uva.nl)
+Hinrik Snær () (hinriksnaer@gmail.com)
+
+## Based on
+Our implementation is based on the tensorflow code in https://github.com/OscarcarLi/PrototypeDL.
+It extends the original implementation by using hierarchical prototypes.
 
 # Instructions
-First, activate the correct environment (more about this below):
+First, (create and then) activate the correct environment:
 ```
-conda env create -f environment_prototype.yml
+[conda env create -f environment_prototype.yml]
 source activate prototype 
 ```
 
@@ -15,9 +22,10 @@ Then, run the code either from the IPython notebook, or by running `run.py`:
 ```
 python run.py [--seed <int>] [--dir <directory name>] [--hier]
 ```
+This will run the code with default parameters/seed for reproduction.
 
 # Environment
-I based this environment on the environment provided by the DL course and added jupyter for easy ipython notebooks.
+I based this environment on the environment provided by the DL course and added jupyter for easy IPython notebooks.
 
 ## Setup the environment
 ```
@@ -25,14 +33,8 @@ conda env create -f environment_prototype.yml
 conda activate prototype
 ```
 
-## Changing the environment if you need more packages
-```
-conda install -n prototype <your-packages>
-conda env export > environment_prototype.yml
-```
-
-## Other things about the environment
-I hate it! Lisa doesnt have all the up to date packages! So I removed the ipython notebook dependencies and just include the training for this guy.
-If you want to use it on lisa, use `environment_prototype2.yml` instead.
+## Help! if environment does not work on LISA:
+I removed the ipython notebook dependencies in a second environment `environment_prototype2.yml`. 
+If there is trouble using Lisa, use `environment_prototype2.yml` instead.
 This includes an older version of `pillow`, see https://github.com/python-pillow/Pillow/issues/4130. 
 

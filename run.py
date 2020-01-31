@@ -12,8 +12,6 @@ PARSER.add_argument("--n_prototypes", type=int, default=10,
                     help='Number of prototypes/superprototypes')
 PARSER.add_argument("--n_sub_prototypes", type=int, default=20,
                     help='Number of sub-prototypes')
-PARSER.add_argument("--latent_size", type=int, default=40,
-                    help='Size of the latent space')
 
 PARSER.add_argument("--lambda_class", type=int, default=20,
                     help='lambda value for standard classification loss')
@@ -68,7 +66,7 @@ train_MNIST(
     hierarchical=ARGS.hier,
     n_prototypes=ARGS.n_prototypes,
     n_sub_prototypes=ARGS.n_sub_prototypes,
-    latent_size=ARGS.latent_size,
+    latent_size=40,
     n_classes=10,
     lambda_dict=LAMBDA_DICT,
     learning_rate=ARGS.learning_rate,

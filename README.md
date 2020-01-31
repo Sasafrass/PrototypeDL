@@ -2,10 +2,10 @@
 Private Github repository for the course Fairness, Accountability, Confidentiality and Transparency in AI at the University of Amsterdam. 
 
 ## Authors
-Albert Harkema () (albert.harkema@student.uva.nl)
-Anna Langedijk (12297402) (annalangedijk@gmail.com)
-Christiaan van der Vlist () (christiaan.vandervlist@student.uva.nl)
-Hinrik Snær (12675326) (hinriksnaer@gmail.com)
+* Albert Harkema () (albert.harkema@student.uva.nl)
+* Anna Langedijk (12297402) (annalangedijk@gmail.com)
+* Christiaan van der Vlist () (christiaan.vandervlist@student.uva.nl)
+* Hinrik Snær (12675326) (hinriksnaer@gmail.com)
 
 ## Based on
 Our implementation is based on the tensorflow code in https://github.com/OscarcarLi/PrototypeDL.
@@ -29,13 +29,9 @@ python run.py --help
 ```
 for more information about all the different parameters.
 
-# Environment
+# Code base 
+All of our non-wrapper code is included in the `src/` directory. The basic modules are in `src/network`. They are combined within the `src/model.py` file, together with all the files necessary for training.
+
+## Environment
 I based this environment on the environment provided by the DL course and added jupyter, matplotlib for easy IPython notebooks.
 This includes an older version of `pillow`, see https://github.com/python-pillow/Pillow/issues/4130. This issue is encountered on older versions of packages (for instance on Lisa).
-
-## Setup the environment
-```
-conda env create -f environment_prototype.yml
-conda activate prototype
-```
-

@@ -17,8 +17,7 @@ class ConvEncoder(nn.Module):
         super().__init__()
 
         # Apparently padding=1 was necessary to get the same dimensions as listed in the paper.
-        # There should be a way to do this automatically, which is what tensorflow probably does
-        # Although in the paper "zero padding" is used, which is kinda ambiguous in itself
+        # There should be a way to do this automatically, like in tensorflow.
         self.convnet = nn.Sequential(
             nn.Conv2d(1, 32, kernel_size=3, stride=2, padding=1),
             nn.Sigmoid(),
@@ -66,7 +65,8 @@ class ConvDecoder(nn.Module):
             Output:
                 out : Decoded data of shape (batch_size * 1 * 28 * 28)
         """
-        # Output_size is necessary during convolution
+        # Output_size is necessary during convolution, to ensure correct dimensionsality.
+        # In tensorflow, this can again be done with 'same' padding.
         data_length = len(data_in)
         out = self.de1(data_in, output_size=(data_length, 32, 4, 4))
         out = self.sigmoid(out)

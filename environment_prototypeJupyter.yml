@@ -1,4 +1,4 @@
-name: prototype
+name: prototypeJupyter
 channels:
   - pytorch
   - conda-forge
@@ -13,3 +13,4 @@ dependencies:
   - torchvision=0.2.2=py_3
   - pillow=6.1
   - jupyter
+  - matplotlib

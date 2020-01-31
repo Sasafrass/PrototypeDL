@@ -20,7 +20,7 @@ source activate prototype
 
 Then, run the code either from the IPython notebook, or by running `run.py`: 
 ```
-python run.py [--hier] [--seed <int>] [--dir <directory name>] ...
+python run.py [--hier true] [--seed <int>] [--dir <directory name>] ...
 ```
 This will run the code with default parameters/seed for reproduction.
 Additional parameters can be set according to their descriptions, run 

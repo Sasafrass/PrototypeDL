@@ -138,9 +138,18 @@ def save_images(prototype_path, prototypes, subprototypes, epoch):
             normalize=True)
 
 def test_MNIST(test_data, hierarchical, lambda_dict, results_path, model=None, model_path=None):
+    """
+    Tests given model on MNIST testdata
+    Args:
+        Input:
+            test_data : data object 
+            hierarchical : is the model hierarchical (boolean)
+            lambda_dict : lambda's for the test loss 
+            results_path : where to save the results
+            model/model_path : either a model object or a path to a model (.pt/.pth)
+    """
     if model_path is not None:
         model = torch.load(model_path, map_location=torch.device(DEVICE))
-
 
     model.eval()
     test_dataloader = DataLoader(test_data, batch_size=250)
@@ -236,10 +245,10 @@ def train_MNIST(hierarchical=False, n_prototypes=15, n_sub_prototypes=20,
     f.close()
 
     ### Load data
-    train_data = MNIST('../data', train=True, download=True, transform=transforms.Compose([
+    train_data = MNIST('./data', train=True, download=True, transform=transforms.Compose([
         transforms.ToTensor(),
     ]))
-    test_data = MNIST('../data', train=False, download=True, transform=transforms.Compose([
+    test_data = MNIST('./data', train=False, download=True, transform=transforms.Compose([
         transforms.ToTensor(),
     ]))
 

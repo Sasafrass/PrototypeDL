@@ -76,4 +76,4 @@ train_MNIST(
     alpha=ARGS.alpha,
     seed=ARGS.seed,
     directory=ARGS.dir,
-    underrepresented_class=9)
+    underrepresented_class=-1)

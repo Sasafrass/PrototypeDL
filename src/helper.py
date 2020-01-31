@@ -16,8 +16,8 @@ def check_path(path):
 
 def list_of_distances(x_vector, y_vector):
     """
-    Given a list of vectors, x = [x_1, ..., x_n], and another list of vectors,
-    y = [y_1, ... , y_m], we return a list of vectors
+    Given a list of vectors, x_vector = [x_1, ..., x_n], and another list of vectors,
+    y_vector = [y_1, ... , y_m], we return a list of vectors
             [[d(x_1, y_1), d(x_1, y_2), ... , d(x_1, y_m)],
              ...
              [d(x_n, y_1), d(x_n, y_2), ... , d(x_n, y_m)]],
@@ -32,7 +32,7 @@ def list_of_distances(x_vector, y_vector):
 
 def list_of_norms(x_vector):
     """
-    x is a list of vectors x = [x_1, ..., x_n], we return
+    x_vector is a list of vectors x = [x_1, ..., x_n], we return
         [d(x_1, x_1), d(x_2, x_2), ... , d(x_n, x_n)], where the distance
     function is the squared euclidean distance.
     """

@@ -41,11 +41,14 @@ PARSER.add_argument("--batch_size", type=int, default=250,
 PARSER.add_argument("--save_every", type=int, default=1,
                     help='Save the results after every x epoch')
 
-PARSER.add_argument("--sigma", type=int, default=4)
-PARSER.add_argument("--alpha", type=int, default=20)
+PARSER.add_argument("--sigma", type=int, default=4, 
+                    help='Standard deviation for the random elastic distortions')
+PARSER.add_argument("--alpha", type=int, default=20, 
+                    help='Scaling factor for the random elastic distortions')
 
 PARSER.add_argument("--underrepresented_class", type=int, default=-1,
-                    help='Number representing an underrepresented class')
+                    help='Class number representing the underrepresented, downsampled class. \
+                        When set to -1, all classes will be represented according to the original distribution.')
 PARSER.add_argument('--dir', type=str, default='my_own_model',
                     help='main directory to save intermediate results')
 ARGS = PARSER.parse_args()

@@ -20,21 +20,22 @@ source activate prototype
 
 Then, run the code either from the IPython notebook, or by running `run.py`: 
 ```
-python run.py [--seed <int>] [--dir <directory name>] [--hier]
+python run.py [--hier] [--seed <int>] [--dir <directory name>] ...
 ```
 This will run the code with default parameters/seed for reproduction.
+Additional parameters can be set according to their descriptions, run 
+```
+python run.py --help
+```
+for more information about all the different parameters.
 
 # Environment
-I based this environment on the environment provided by the DL course and added jupyter for easy IPython notebooks.
+I based this environment on the environment provided by the DL course and added jupyter, matplotlib for easy IPython notebooks.
+This includes an older version of `pillow`, see https://github.com/python-pillow/Pillow/issues/4130. This issue is encountered on older versions of packages (for instance on Lisa).
 
 ## Setup the environment
 ```
 conda env create -f environment_prototype.yml
 conda activate prototype
 ```
-
-## Help! if environment does not work on LISA:
-I removed the ipython notebook dependencies in a second environment `environment_prototype2.yml`. 
-If there is trouble using Lisa, use `environment_prototype2.yml` instead.
-This includes an older version of `pillow`, see https://github.com/python-pillow/Pillow/issues/4130. 
 

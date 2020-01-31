@@ -2,10 +2,10 @@
 Private Github repository for the course Fairness, Accountability, Confidentiality and Transparency in AI at the University of Amsterdam. 
 
 ## Authors
-Albert Harkema () (albert.harkema@student.uva.nl)
-Anna Langedijk (12297402) (annalangedijk@gmail.com)
-Christiaan van der Vlist () (christiaan.vandervlist@student.uva.nl)
-Hinrik Snær (12675326) (hinriksnaer@gmail.com)
+* Albert Harkema () (albert.harkema@student.uva.nl)
+* Anna Langedijk (12297402) (annalangedijk@gmail.com)
+* Christiaan van der Vlist () (christiaan.vandervlist@student.uva.nl)
+* Hinrik Snær (12675326) (hinriksnaer@gmail.com)
 
 ## Based on
 Our implementation is based on the tensorflow code in https://github.com/OscarcarLi/PrototypeDL.
@@ -38,4 +38,5 @@ This includes an older version of `pillow`, see https://github.com/python-pillow
 conda env create -f environment_prototype.yml
 conda activate prototype
 ```
-
+# Code base 
+All of our non-wrapper code is included in the `src/` directory. 
